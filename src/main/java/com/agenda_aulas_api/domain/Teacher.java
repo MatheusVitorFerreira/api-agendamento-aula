@@ -1,0 +1,36 @@
+package com.agenda_aulas_api.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Teacher extends Person {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "idTeacher", updatable = false, unique = true, nullable = false)
+    private UUID idTeacher;
+
+    private String job;
+
+    @ManyToMany
+    @JoinTable(
+            name = "teacher_discipline",
+            joinColumns = @JoinColumn(name = "teacher_id"),
+            inverseJoinColumns = @JoinColumn(name = "discipline_id")
+    )
+    private List<Discipline> disciplines = new ArrayList<>();
+
+    private int limitCoursesByWeek;
+
+    @OneToMany(mappedBy = "teacher")
+    private List<TimeTable> timeTables = new ArrayList<>();
+}
