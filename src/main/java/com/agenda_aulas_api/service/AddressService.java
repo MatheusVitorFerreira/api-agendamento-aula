@@ -56,8 +56,9 @@ public class AddressService {
         }
     }
 
+
     @Transactional
-    public AddressDTO insert(AddressDTO obj) {
+    public AddressDTO createAddress(AddressDTO obj) {
         try {
             Address address = obj.toAddress();
             boolean exists = addressRepository.existsByStreetAndNumberAndCityAndStateAndZipCodeAndCountry(
@@ -77,4 +78,27 @@ public class AddressService {
         }
     }
 
+    @Transactional
+    public AddressDTO updateAddress(AddressDTO objDto, UUID idAddress) {
+        try {
+            Address existingAddress = addressRepository.findById(idAddress)
+                    .orElseThrow(() -> new AddressRepositoryNotFoundException("Address not found with id: " + idAddress));
+            existingAddress.setCity(objDto.getCity());
+            existingAddress.setCountry(objDto.getCountry());
+            existingAddress.setState(objDto.getState());
+            existingAddress.setZipCode((objDto.getZipCode()));
+            existingAddress.setNumber(objDto.getNumber());
+            existingAddress.setStreet(objDto.getStreet());
+            Address updateAddress = addressRepository.save(existingAddress);
+            return AddressDTO.fromAddress(updateAddress);
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to update address in the database: " + e.getMessage());
+        }
+    }
+
+    public void deleteAddress(UUID idAddress) {
+        Address existingAddress = addressRepository.findById(idAddress)
+                .orElseThrow(() -> new AddressRepositoryNotFoundException("Address not found with id: " + idAddress));
+        addressRepository.deleteById(idAddress);
+    }
 }
