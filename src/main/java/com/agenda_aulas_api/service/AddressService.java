@@ -9,6 +9,8 @@ import com.agenda_aulas_api.excepetion.erros.InvalidUrlException;
 import com.agenda_aulas_api.repository.AddressRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@NoArgsConstructor
+@AllArgsConstructor
 public class AddressService {
 
     @Autowired

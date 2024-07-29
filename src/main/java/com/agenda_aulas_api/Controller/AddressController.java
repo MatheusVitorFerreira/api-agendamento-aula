@@ -46,7 +46,6 @@ public class AddressController {
         return ResponseEntity.ok(addressDTOPage);
     }
 
-
     @PostMapping
     public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
         AddressDTO savedAddresDTO = addressService.createAddress(addressDTO);
