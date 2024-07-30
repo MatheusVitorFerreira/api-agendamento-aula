@@ -4,6 +4,7 @@ import com.agenda_aulas_api.domain.Address;
 import com.agenda_aulas_api.dto.AddressDTO;
 import com.agenda_aulas_api.excepetion.erros.AddressRepositoryNotFoundException;
 import com.agenda_aulas_api.excepetion.erros.DatabaseNegatedAccessException;
+import com.agenda_aulas_api.excepetion.erros.DuplicateEntityException;
 import com.agenda_aulas_api.excepetion.erros.InvalidUrlException;
 
 import com.agenda_aulas_api.repository.AddressRepository;
@@ -73,7 +74,7 @@ public class AddressService {
                     address.getZipCode(),
                     address.getCountry());
             if (exists) {
-                throw new AddressRepositoryNotFoundException("Address with the same attributes already exists.");
+                throw new DuplicateEntityException("Address with the same attributes already exists.");
             }
             Address savedAddress = addressRepository.save(address);
             return AddressDTO.fromAddress(savedAddress);

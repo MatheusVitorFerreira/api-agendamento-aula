@@ -5,6 +5,7 @@ import com.agenda_aulas_api.excepetion.erros.NegativeAgeException;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -23,9 +24,14 @@ public abstract class Person implements Serializable {
     @Column(name = "birth_date")
     private LocalDate birthDateTime;
 
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;
+
+    @Column(nullable = false, unique = true)
+    @CPF
+    private String cpf;
 
     @Column(nullable = false, unique = true)
     private String email;

@@ -3,10 +3,7 @@ package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.Discipline;
 import com.agenda_aulas_api.dto.DisciplineDTO;
-import com.agenda_aulas_api.excepetion.erros.AddressRepositoryNotFoundException;
-import com.agenda_aulas_api.excepetion.erros.DatabaseNegatedAccessException;
-import com.agenda_aulas_api.excepetion.erros.DisciplineRepositoryNotFoundException;
-import com.agenda_aulas_api.excepetion.erros.InvalidUrlException;
+import com.agenda_aulas_api.excepetion.erros.*;
 import com.agenda_aulas_api.repository.DisciplineRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -66,7 +63,7 @@ public class DisciplineService {
             boolean exists = disciplineRepository.existsByName(
                     discipline.getName());
             if (exists) {
-                throw new DisciplineRepositoryNotFoundException("Discipline with the same attributes already exists.");
+                throw new DuplicateEntityException("Discipline with the same attributes already exists.");
             }
             Discipline saveDiciDiscipline = disciplineRepository.save(discipline);
             return DisciplineDTO.fromDiscipline(saveDiciDiscipline);

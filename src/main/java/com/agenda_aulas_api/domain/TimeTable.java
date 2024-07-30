@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TimeTable {
+public class TimeTable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

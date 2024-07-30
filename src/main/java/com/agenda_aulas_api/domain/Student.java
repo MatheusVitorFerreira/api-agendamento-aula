@@ -1,8 +1,10 @@
 package com.agenda_aulas_api.domain;
 
 import jakarta.persistence.*;
+import jdk.jfr.Enabled;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Student extends Person {
+public class Student extends Person  implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,6 +24,7 @@ public class Student extends Person {
 
     private LocalDate enrollmentDate;
 
+    @Transient
     private String progress;
 
     @ManyToMany(mappedBy = "students")

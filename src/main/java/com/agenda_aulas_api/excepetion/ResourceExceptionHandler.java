@@ -18,12 +18,27 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
 
+    @ExceptionHandler(DuplicateEntityException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<StandardError> DuplicateEntityException(DuplicateEntityException e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+    }
+
+    @ExceptionHandler(StudentRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<StandardError> StudentRepositoryNotFoundException(StudentRepositoryNotFoundException e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
     @ExceptionHandler(AddressRepositoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<StandardError> AddressRepositoryNotFoundException(AddressRepositoryNotFoundException e, HttpServletRequest request) {
         StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
+
     @ExceptionHandler(DisciplineRepositoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<StandardError> DisciplineRepositoryNotFoundException(DisciplineRepositoryNotFoundException e, HttpServletRequest request) {
