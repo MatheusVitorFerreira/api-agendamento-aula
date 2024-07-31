@@ -41,7 +41,7 @@ public class StudentService {
             return studentRepository.findAll()
                     .stream()
                     .map(student -> {
-                        Map<String, Object> map = objectMapper.convertValue(student, Map.class);
+                        Map map = objectMapper.convertValue(student, Map.class);
                         Map<String, Object> filteredMap = new HashMap<>();
                         filteredMap.put("idStudent", map.get("idStudent"));
                         filteredMap.put("fullName", map.get("fullName"));
@@ -151,7 +151,7 @@ public class StudentService {
     @Transactional
     public void deleteStudent(UUID id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
+                .orElseThrow(() -> new StudentRepositoryNotFoundException("Student not found with id: " + id));
         if (student.getAddress() != null) {
             Address address = student.getAddress();
             addressRepository.delete(address);

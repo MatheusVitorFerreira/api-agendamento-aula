@@ -32,6 +32,7 @@ public class Teacher extends Person implements Serializable {
 
     private int limitCoursesByWeek;
 
+
     @OneToMany(mappedBy = "teacher")
     private List<TimeTable> timeTables = new ArrayList<>();
 }

@@ -24,7 +24,6 @@ public abstract class Person implements Serializable {
     @Column(name = "birth_date")
     private LocalDate birthDateTime;
 
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;

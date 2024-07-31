@@ -46,6 +46,13 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
+    @ExceptionHandler(TeacherRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<StandardError> TeacherRepositoryNotFoundException(TeacherRepositoryNotFoundException e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
     @ExceptionHandler(DatabaseNegatedAccessException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public ResponseEntity<StandardError> DatabaseNegatedAccessException(DatabaseNegatedAccessException e, HttpServletRequest request) {
