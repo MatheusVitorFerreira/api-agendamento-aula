@@ -3,7 +3,7 @@ package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.Discipline;
 import com.agenda_aulas_api.dto.DisciplineDTO;
-import com.agenda_aulas_api.excepetion.erros.*;
+import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.DisciplineRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -39,7 +39,7 @@ public class DisciplineService {
     public DisciplineDTO findById(UUID id) {
         try {
             Discipline discipline = disciplineRepository.findById(id)
-                    .orElseThrow(() -> new AddressRepositoryNotFoundException("Discipline not found with id: " + id));
+                    .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + id));
             return DisciplineDTO.fromDiscipline(discipline);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
@@ -76,18 +76,18 @@ public class DisciplineService {
     public DisciplineDTO updateDiscipline(DisciplineDTO objDto, UUID idDiscipline) {
         try {
             Discipline existingDiscipline = disciplineRepository.findById(idDiscipline)
-                    .orElseThrow(() -> new AddressRepositoryNotFoundException("Address not found with id: " + idDiscipline));
+                    .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + idDiscipline));
             existingDiscipline.setName(objDto.getName());
             Discipline updateDiscipline = disciplineRepository.save(existingDiscipline);
             return DisciplineDTO.fromDiscipline(updateDiscipline);
         } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to update address in the database: " + e.getMessage());
+            throw new DatabaseNegatedAccessException("Failed to update discipline in the database: " + e.getMessage());
         }
     }
 
     public void deleteAddress(UUID idAddress) {
         Discipline existingDiscipline= disciplineRepository.findById(idAddress)
-                .orElseThrow(() -> new AddressRepositoryNotFoundException("Address not found with id: " + idAddress));
+                .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + idAddress));
         disciplineRepository.deleteById(idAddress);
     }
 }

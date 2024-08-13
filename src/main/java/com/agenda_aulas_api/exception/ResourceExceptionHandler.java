@@ -1,6 +1,6 @@
-package com.agenda_aulas_api.excepetion;
+package com.agenda_aulas_api.exception;
 
-import com.agenda_aulas_api.excepetion.erros.*;
+import com.agenda_aulas_api.exception.erros.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -25,30 +25,49 @@ public class ResourceExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
 
-    @ExceptionHandler(StudentRepositoryNotFoundException.class)
+    @ExceptionHandler(StudentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<StandardError> StudentRepositoryNotFoundException(StudentRepositoryNotFoundException e, HttpServletRequest request) {
+    public ResponseEntity<StandardError> StudentRepositoryNotFoundException(StudentNotFoundException e, HttpServletRequest request) {
         StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(AddressRepositoryNotFoundException.class)
+    @ExceptionHandler(AddressNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<StandardError> AddressRepositoryNotFoundException(AddressRepositoryNotFoundException e, HttpServletRequest request) {
+    public ResponseEntity<StandardError> AddressRepositoryNotFoundException(AddressNotFoundException e, HttpServletRequest request) {
         StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(DisciplineRepositoryNotFoundException.class)
+    @ExceptionHandler(DisciplineNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<StandardError> DisciplineRepositoryNotFoundException(DisciplineRepositoryNotFoundException e, HttpServletRequest request) {
+    public ResponseEntity<StandardError> DisciplineRepositoryNotFoundException(DisciplineNotFoundException e, HttpServletRequest request) {
         StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }
 
-    @ExceptionHandler(TeacherRepositoryNotFoundException.class)
+    @ExceptionHandler(ScheduleClassRepositoryNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<StandardError> TeacherRepositoryNotFoundException(TeacherRepositoryNotFoundException e, HttpServletRequest request) {
+    public ResponseEntity<StandardError> ScheduleClassRepositoryNotFoundException(ScheduleClassRepositoryNotFoundException e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+    @ExceptionHandler(LessonNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<StandardError> LessonNotFoundException(LessonNotFoundException e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+    @ExceptionHandler(NoAvailableSlotsException .class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<StandardError> NoAvailableSlotsException (NoAvailableSlotsException  e, HttpServletRequest request) {
+        StandardError err = new StandardError(HttpStatus.BAD_REQUEST.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+    }
+
+    @ExceptionHandler(TeacherNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<StandardError> TeacherRepositoryNotFoundException(TeacherNotFoundException e, HttpServletRequest request) {
         StandardError err = new StandardError(HttpStatus.NOT_FOUND.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
     }

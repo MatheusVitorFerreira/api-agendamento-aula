@@ -4,7 +4,8 @@ import com.agenda_aulas_api.domain.Address;
 import com.agenda_aulas_api.domain.Discipline;
 import com.agenda_aulas_api.domain.Teacher;
 import com.agenda_aulas_api.dto.TeacherDTO;
-import com.agenda_aulas_api.excepetion.erros.*;
+import com.agenda_aulas_api.dto.record.DiciplineRecord;
+import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.AddressRepository;
 import com.agenda_aulas_api.repository.DisciplineRepository;
 import com.agenda_aulas_api.repository.TeacherRepository;
@@ -64,7 +65,7 @@ public class TeacherService {
     public TeacherDTO findById(UUID idTeacher) {
         try {
             Teacher teacher = teacherRepository.findById(idTeacher).orElseThrow
-                    (() -> new TeacherRepositoryNotFoundException("Teacher not found with id: " + idTeacher));
+                    (() -> new TeacherNotFoundException("Teacher not found with id: " + idTeacher));
             return TeacherDTO.fromTeacher(teacher);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
@@ -92,7 +93,20 @@ public class TeacherService {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
+    public TeacherDTO addDisciplineToTeacher(UUID teacherId, DiciplineRecord disciplineRecord) {
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + teacherId));
 
+        Discipline discipline = disciplineRepository.findById(disciplineRecord.disciplineId())
+                .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
+                        + disciplineRecord.disciplineId()));
+
+        teacher.getDisciplines().add(discipline);
+
+        Teacher updatedTeacher = teacherRepository.save(teacher);
+
+        return TeacherDTO.fromTeacher(updatedTeacher);
+    }
     @Transactional
     public TeacherDTO createTeacher(TeacherDTO dto) {
         try {
@@ -102,7 +116,7 @@ public class TeacherService {
                 List<Discipline> disciplines = disciplineRepository.findAllById(dto.getDisciplineIds());
 
                 if (disciplines.size() != dto.getDisciplineIds().size()) {
-                    throw new DisciplineRepositoryNotFoundException("Some disciplines were not found.");
+                    throw new DisciplineNotFoundException("Some disciplines were not found.");
                 }
                 teacher.getDisciplines().addAll(disciplines);
             }
@@ -119,7 +133,8 @@ public class TeacherService {
     @Transactional
     public TeacherDTO updateTeacher(TeacherDTO obj, UUID idTeacher) {
         try {
-            Teacher existingTeacher = teacherRepository.findById(idTeacher).orElseThrow(() -> new TeacherRepositoryNotFoundException("Teacher not found with id: " + idTeacher));
+            Teacher existingTeacher = teacherRepository.findById(idTeacher).orElseThrow(() ->
+                    new TeacherNotFoundException("Teacher not found with id: " + idTeacher));
             existingTeacher.setFullName(obj.getFullName());
             existingTeacher.setBirthDateTime(obj.getBirthDateTime());
             existingTeacher.setAge(obj.getAge());
@@ -144,7 +159,8 @@ public class TeacherService {
     @Transactional
     public void deleteTeacher(UUID id) {
         Teacher student = teacherRepository.findById(id)
-                .orElseThrow(() -> new TeacherRepositoryNotFoundException("Teacher not found with id: " + id));
+                .orElseThrow(() ->
+                        new TeacherNotFoundException("Teacher not found with id: " + id));
         if (student.getAddress() != null) {
             Address address = student.getAddress();
             addressRepository.delete(address);

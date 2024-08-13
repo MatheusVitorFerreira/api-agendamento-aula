@@ -1,4 +1,4 @@
-package com.agenda_aulas_api.excepetion.erros;
+package com.agenda_aulas_api.exception.erros;
 
 public class DuplicateEntityException extends RuntimeException {
 

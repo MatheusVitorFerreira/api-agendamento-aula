@@ -1,4 +1,4 @@
-package com.agenda_aulas_api.excepetion;
+package com.agenda_aulas_api.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

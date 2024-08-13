@@ -5,7 +5,7 @@ import com.agenda_aulas_api.repository.AddressRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.agenda_aulas_api.domain.Student;
 import com.agenda_aulas_api.dto.StudentDTO;
-import com.agenda_aulas_api.excepetion.erros.*;
+import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.StudentRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -61,7 +61,7 @@ public class StudentService {
     public StudentDTO findById(UUID idStudent) {
         try {
             Student student = studentRepository.findById(idStudent)
-                    .orElseThrow(() -> new StudentRepositoryNotFoundException("Student not found with id: " + idStudent));
+                    .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + idStudent));
             return StudentDTO.fromStudent(student);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
@@ -126,7 +126,7 @@ public class StudentService {
     public StudentDTO updateStudent(StudentDTO obj, UUID idStudent) {
         try {
             Student existingStudent = studentRepository.findById(idStudent)
-                    .orElseThrow(() -> new StudentRepositoryNotFoundException("Student not found with id: " + idStudent));
+                    .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + idStudent));
 
             existingStudent.setFullName(obj.getFullName());
             existingStudent.setBirthDateTime(obj.getBirthDateTime());
@@ -151,7 +151,7 @@ public class StudentService {
     @Transactional
     public void deleteStudent(UUID id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentRepositoryNotFoundException("Student not found with id: " + id));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + id));
         if (student.getAddress() != null) {
             Address address = student.getAddress();
             addressRepository.delete(address);

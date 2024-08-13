@@ -1,21 +1,22 @@
 package com.agenda_aulas_api.domain;
 
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
-public class Student extends Person  implements Serializable {
+@NoArgsConstructor
+public class Student extends Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,21 +29,18 @@ public class Student extends Person  implements Serializable {
     private String progress;
 
     @ManyToMany(mappedBy = "students")
-    private List<ScheduleClass> enrolledClasses = new ArrayList<>();
+    private Set<Lesson> lessons = new HashSet<>();
 
-    public void enrollInClass(ScheduleClass scheduleClass) {
-        if (!enrolledClasses.contains(scheduleClass)) {
-            enrolledClasses.add(scheduleClass);
-            scheduleClass.getStudents().add(this);
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(idStudent);
     }
 
-    public void cancelEnrollment(ScheduleClass scheduleClass) {
-        if (enrolledClasses.contains(scheduleClass)) {
-            enrolledClasses.remove(scheduleClass);
-            scheduleClass.getStudents().remove(this);
-        } else {
-            throw new IllegalArgumentException("Student is not enrolled in the specified class");
-        }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return Objects.equals(idStudent, student.idStudent);
     }
 }

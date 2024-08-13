@@ -1,6 +1,6 @@
 package com.agenda_aulas_api.domain;
 
-import com.agenda_aulas_api.excepetion.erros.NegativeAgeException;
+import com.agenda_aulas_api.exception.erros.NegativeAgeException;
 
 import jakarta.persistence.*;
 import lombok.Data;

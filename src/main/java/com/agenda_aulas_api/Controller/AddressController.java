@@ -46,17 +46,6 @@ public class AddressController {
         return ResponseEntity.ok(addressDTOPage);
     }
 
-    @PostMapping
-    public ResponseEntity<AddressDTO> createAddress(@Valid @RequestBody AddressDTO addressDTO) {
-        AddressDTO savedAddresDTO = addressService.createAddress(addressDTO);
-        URI headerLocation = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(savedAddresDTO.getId())
-                .toUri();
-        return ResponseEntity.created(headerLocation).build();
-    }
-
     @PutMapping(value = "/{id}")
     public ResponseEntity<AddressDTO> update(@RequestBody AddressDTO objDto, @PathVariable UUID id) {
         AddressDTO newObj = addressService.updateAddress(objDto, id);

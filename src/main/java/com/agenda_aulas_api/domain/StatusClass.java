@@ -9,8 +9,7 @@ public enum StatusClass {
 
     PENDING(1, "Pending"),
     CONFIRMED(2, "Confirmed"),
-    CANCELLED(3, "Cancelled"),
-    COMPLETED(4, "Completed");
+    CANCELLED(3, "Cancelled");
 
     private final int cod;
     private final String description;

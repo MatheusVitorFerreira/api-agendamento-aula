@@ -6,8 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -22,22 +24,52 @@ public class Lesson implements Serializable {
     private UUID idLesson;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
-    private Student student;
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private Teacher teacher;
 
     @ManyToOne
-    @JoinColumn(name = "teacher_id")
-    private Teacher teacher;
+    @JoinColumn(name = "discipline_id", nullable = false)
+    private Discipline discipline;
+
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private int availableSlots;
+
+    @Enumerated(EnumType.STRING)
+    private StatusClass status;
+
+    private String location;
+
+    @ManyToMany
+    @JoinTable(
+            name = "lesson_students",
+            joinColumns = @JoinColumn(name = "lesson_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private Set<Student> students = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "schedule_class_id")
     private ScheduleClass scheduleClass;
 
-    private DayOfWeek weekDay;
-    private LocalTime startTime;
-    private LocalTime endTime;
+    public void addStudent(Student student) {
+        if (students.size() < availableSlots) {
+            students.add(student);
+        } else {
+            throw new IllegalStateException("No available slots");
+        }
+    }
 
-    public boolean possibleApply(RescheduleExpiationData expi) {
-        return true;
+    @Override
+    public int hashCode() {
+        return Objects.hash(idLesson);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Lesson lesson = (Lesson) o;
+        return Objects.equals(idLesson, lesson.idLesson);
     }
 }
