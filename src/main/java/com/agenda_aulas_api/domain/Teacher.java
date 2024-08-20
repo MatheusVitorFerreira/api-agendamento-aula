@@ -32,7 +32,9 @@ public class Teacher extends Person implements Serializable {
 
     private int limitCoursesByWeek;
 
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Lesson> lessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "teacher")
-    private List<TimeTable> timeTables = new ArrayList<>();
+    private List<ScheduleClassTeacher> scheduleClassTeachers = new ArrayList<>();
 }

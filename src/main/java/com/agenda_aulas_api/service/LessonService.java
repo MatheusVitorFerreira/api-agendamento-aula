@@ -1,25 +1,21 @@
 package com.agenda_aulas_api.service;
 
-import com.agenda_aulas_api.domain.Discipline;
-import com.agenda_aulas_api.domain.Lesson;
-import com.agenda_aulas_api.domain.Student;
-import com.agenda_aulas_api.domain.Teacher;
+import com.agenda_aulas_api.domain.*;
 import com.agenda_aulas_api.dto.LessonDTO;
-import com.agenda_aulas_api.dto.record.LessonRecord;
+import com.agenda_aulas_api.dto.record.LessonRecordDTO;
 import com.agenda_aulas_api.exception.erros.*;
-import com.agenda_aulas_api.repository.StudentRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.agenda_aulas_api.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.agenda_aulas_api.repository.DisciplineRepository;
-import com.agenda_aulas_api.repository.LessonRepository;
-import com.agenda_aulas_api.repository.TeacherRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +25,7 @@ public class LessonService {
     private final TeacherRepository teacherRepository;
     private final DisciplineRepository disciplineRepository;
     private final StudentRepository studentRepository;
-    private final ObjectMapper objectMapper;
+    private final ScheduleClassStudentRepository scheduleClassStudentRepository;
 
     public List<Map<String, Object>> findAll() {
         try {
@@ -37,8 +33,8 @@ public class LessonService {
                     .map(lesson -> {
                         Map<String, Object> filteredMap = new HashMap<>();
                         filteredMap.put("idLesson", lesson.getIdLesson());
-                        filteredMap.put("scheduleClassId", lesson.getScheduleClass()
-                                != null ? lesson.getScheduleClass().getIdClass() : "Não Agendada");
+                        filteredMap.put("scheduleClassId", lesson.getScheduleClass() != null
+                                ? lesson.getScheduleClass().getIdClassSchedule() : "Não Agendada");
                         filteredMap.put("startTime", lesson.getStartTime());
                         filteredMap.put("endTime", lesson.getEndTime());
                         filteredMap.put("availableSlots", lesson.getAvailableSlots());
@@ -54,11 +50,11 @@ public class LessonService {
         try {
             return lessonRepository.findAll().stream()
                     .filter(lesson -> lesson.getAvailableSlots() == 0)
+                    .filter(lesson -> lesson.getScheduleClass() == null)
                     .map(lesson -> {
                         Map<String, Object> filteredMap = new HashMap<>();
                         filteredMap.put("idLesson", lesson.getIdLesson());
-                        filteredMap.put("scheduleClassId", lesson.getScheduleClass()
-                                != null ? lesson.getScheduleClass().getIdClass() : "Não Agendada");
+                        filteredMap.put("scheduleClassId", "Não Agendada");
                         filteredMap.put("startTime", lesson.getStartTime());
                         filteredMap.put("endTime", lesson.getEndTime());
                         filteredMap.put("availableSlots", lesson.getAvailableSlots());
@@ -80,23 +76,33 @@ public class LessonService {
         }
     }
 
+    public Page<LessonRecordDTO> findPageLesson(Integer page, Integer linesPerPage, String orderBy, String direction) {
+        try {
+            PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
+            return lessonRepository.findAll(pageRequest).map(LessonRecordDTO::fromLesson);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUrlException("Invalid URL or sorting parameter: " + e.getMessage());
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+        }
+    }
+
+    @Transactional
     public LessonDTO createLesson(LessonDTO lessonDTO) {
         try {
             Lesson lesson = lessonDTO.toLesson();
+            Teacher teacher = teacherRepository.findById(lessonDTO.getTeacherId())
+                    .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: "
+                            + lessonDTO.getTeacherId()));
+            lesson.setTeacher(teacher);
 
-            if (lessonDTO.getTeacherId() != null) {
-                Teacher teacher = teacherRepository.findById(lessonDTO.getTeacherId())
-                        .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + lessonDTO.getTeacherId()));
-                lesson.setTeacher(teacher);
-            }
-
-            if (lessonDTO.getDisciplineId() != null) {
-                Discipline discipline = disciplineRepository.findById(lessonDTO.getDisciplineId())
-                        .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: " + lessonDTO.getDisciplineId()));
-                lesson.setDiscipline(discipline);
-            }
+            Discipline discipline = disciplineRepository.findById(lessonDTO.getDisciplineId())
+                    .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
+                            + lessonDTO.getDisciplineId()));
+            lesson.setDiscipline(discipline);
 
             Lesson savedLesson = lessonRepository.save(lesson);
+
             return LessonDTO.fromLesson(savedLesson);
 
         } catch (Exception e) {
@@ -104,28 +110,27 @@ public class LessonService {
         }
     }
 
+
     @Transactional
     public LessonDTO updateLesson(LessonDTO lessonDTO, UUID idLesson) {
         try {
             Lesson existingLesson = lessonRepository.findById(idLesson)
                     .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + idLesson));
 
-            if (lessonDTO.getTeacherId() != null) {
-                Teacher teacher = teacherRepository.findById(lessonDTO.getTeacherId())
-                        .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + lessonDTO.getTeacherId()));
-                existingLesson.setTeacher(teacher);
-            }
+            Teacher teacher = teacherRepository.findById(lessonDTO.getTeacherId())
+                    .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: "
+                            + lessonDTO.getTeacherId()));
+            existingLesson.setTeacher(teacher);
 
-            if (lessonDTO.getDisciplineId() != null) {
-                Discipline discipline = disciplineRepository.findById(lessonDTO.getDisciplineId())
-                        .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: " + lessonDTO.getDisciplineId()));
-                existingLesson.setDiscipline(discipline);
-            }
+            Discipline discipline = disciplineRepository.findById(lessonDTO.getDisciplineId())
+                    .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
+                            + lessonDTO.getDisciplineId()));
+            existingLesson.setDiscipline(discipline);
 
             existingLesson.setAvailableSlots(lessonDTO.getAvailableSlots());
             existingLesson.setLocation(lessonDTO.getLocation());
-            existingLesson.setEndTime(lessonDTO.toLesson().getEndTime());
-            existingLesson.setStartTime(lessonDTO.toLesson().getStartTime());
+            existingLesson.setStartTime(LocalTime.parse(lessonDTO.getStartTime(), LessonDTO.TIME_FORMATTER));
+            existingLesson.setEndTime(LocalTime.parse(lessonDTO.getEndTime(), LessonDTO.TIME_FORMATTER));
 
             Lesson updatedLesson = lessonRepository.save(existingLesson);
             return LessonDTO.fromLesson(updatedLesson);
@@ -134,16 +139,18 @@ public class LessonService {
         }
     }
 
-    public void deleteLesson(UUID idLesson) {
-        Lesson lesson = lessonRepository.findById(idLesson).orElseThrow(() ->
-                new LessonNotFoundException("Lesson not found with id: " + idLesson));
-        lessonRepository.deleteById(idLesson);
-    }
-
     @Transactional
-    public void addStudentToLesson(UUID lessonId, LessonRecord lessonRecord) {
-        UUID studentId = lessonRecord.idStudent();
-
+    public void deleteLesson(UUID lessonId) {
+        try {
+            Lesson lesson = lessonRepository.findById(lessonId)
+                    .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + lessonId));
+            lessonRepository.delete(lesson);
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to delete Lesson: " + e.getMessage());
+        }
+    }
+    @Transactional
+    public void addStudentToLesson(UUID lessonId, UUID studentId) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + lessonId));
 
@@ -151,13 +158,25 @@ public class LessonService {
                 .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + studentId));
 
         if (lesson.getAvailableSlots() > 0) {
+            // Adiciona aluno à lição
             lesson.addStudent(student);
             lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
             lessonRepository.save(lesson);
+
+            // Atualiza a relação entre aluno e lição
             if (!student.getLessons().contains(lesson)) {
                 student.getLessons().add(lesson);
                 studentRepository.save(student);
             }
+
+
+            ScheduleClassStudent scheduleClassStudent = new ScheduleClassStudent();
+            scheduleClassStudent.setLesson(lesson);
+            scheduleClassStudent.setStudent(student);
+            scheduleClassStudent.setStartTime(lesson.getStartTime());
+            scheduleClassStudent.setEndTime(lesson.getEndTime());
+
+            scheduleClassStudentRepository.save(scheduleClassStudent);
         } else {
             throw new NoAvailableSlotsException("No available slots for this lesson.");
         }

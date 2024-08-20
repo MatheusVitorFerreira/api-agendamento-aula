@@ -93,6 +93,7 @@ public class TeacherService {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
+
     public TeacherDTO addDisciplineToTeacher(UUID teacherId, DiciplineRecord disciplineRecord) {
         Teacher teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + teacherId));
@@ -107,10 +108,17 @@ public class TeacherService {
 
         return TeacherDTO.fromTeacher(updatedTeacher);
     }
+
     @Transactional
     public TeacherDTO createTeacher(TeacherDTO dto) {
         try {
             Teacher teacher = dto.toTeacher();
+
+            if (dto.getAddress() != null) {
+                Address address = dto.getAddress().toAddress();
+                address = addressRepository.save(address); // Persistindo o Address diretamente
+                teacher.setAddress(address);
+            }
 
             if (dto.getDisciplineIds() != null && !dto.getDisciplineIds().isEmpty()) {
                 List<Discipline> disciplines = disciplineRepository.findAllById(dto.getDisciplineIds());
@@ -123,8 +131,6 @@ public class TeacherService {
 
             teacher = teacherRepository.save(teacher);
             return TeacherDTO.fromTeacher(teacher);
-        } catch (DuplicateEntityException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }

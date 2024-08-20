@@ -1,15 +1,9 @@
 package com.agenda_aulas_api.Controller;
 
-
 import com.agenda_aulas_api.dto.LessonDTO;
-import com.agenda_aulas_api.dto.record.LessonRecord;
-import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
-import com.agenda_aulas_api.exception.erros.NoAvailableSlotsException;
 import com.agenda_aulas_api.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,40 +18,39 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LessonController {
 
-    @Autowired
     private final LessonService lessonService;
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllDiscipline() {
+    public ResponseEntity<List<Map<String, Object>>> getAllLessons() {
         List<Map<String, Object>> lessonDTOList = lessonService.findAll();
         return ResponseEntity.ok(lessonDTOList);
     }
 
-    @GetMapping(value = "/{id}")
-    public ResponseEntity<LessonDTO> getDisciplineById(@PathVariable UUID id) {
-        LessonDTO LessonDTO = lessonService.findById(id);
-        return ResponseEntity.ok(LessonDTO);
+    @GetMapping("/{id}")
+    public ResponseEntity<LessonDTO> getLessonById(@PathVariable UUID id) {
+        LessonDTO lessonDTO = lessonService.findById(id);
+        return ResponseEntity.ok(lessonDTO);
     }
 
     @PostMapping
-    public ResponseEntity<LessonDTO> createDiscipline(@Valid @RequestBody LessonDTO lessonDTO) {
-        LessonDTO LessonList = lessonService.createLesson(lessonDTO);
+    public ResponseEntity<LessonDTO> createLesson(@Valid @RequestBody LessonDTO lessonDTO) {
+        LessonDTO createdLesson = lessonService.createLesson(lessonDTO);
         URI headerLocation = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(lessonDTO.getIdLesson())
+                .buildAndExpand(createdLesson.getIdLesson())
                 .toUri();
-        return ResponseEntity.created(headerLocation).build();
+        return ResponseEntity.created(headerLocation).body(createdLesson);
     }
 
-    @PutMapping(value = "/{id}")
-    public ResponseEntity<LessonDTO> updateLesson(@RequestBody LessonDTO lessonDTO, @PathVariable UUID id) {
-        LessonDTO updateLesson = lessonService.updateLesson(lessonDTO, id);
-        return ResponseEntity.ok(updateLesson);
+    @PutMapping("/{id}")
+    public ResponseEntity<LessonDTO> updateLesson(@Valid @RequestBody LessonDTO lessonDTO, @PathVariable UUID id) {
+        LessonDTO updatedLesson = lessonService.updateLesson(lessonDTO, id);
+        return ResponseEntity.ok(updatedLesson);
     }
 
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<LessonDTO> deleteLesson(@PathVariable UUID id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLesson(@PathVariable UUID id) {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();
     }
@@ -65,8 +58,9 @@ public class LessonController {
     @PostMapping("/{lessonId}/students")
     public ResponseEntity<Void> addStudentToLesson(
             @PathVariable UUID lessonId,
-            @RequestBody LessonRecord lessonRecord) {
-        lessonService.addStudentToLesson(lessonId, lessonRecord);
+            @RequestBody Map<String, UUID> payload) {
+        UUID studentId = payload.get("idStudent");
+        lessonService.addStudentToLesson(lessonId, studentId);
         return ResponseEntity.noContent().build();
     }
 

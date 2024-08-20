@@ -84,7 +84,7 @@ public class StudentService {
             Page<Student> studentPage = studentRepository.findAll(pageRequest);
 
             return studentPage.map(student -> {
-                Map<String, Object> map = objectMapper.convertValue(student, Map.class);
+                Map map = objectMapper.convertValue(student, Map.class);
                 Map<String, Object> filteredMap = new HashMap<>();
                 filteredMap.put("idStudent", map.get("idStudent"));
                 filteredMap.put("fullName", map.get("fullName"));

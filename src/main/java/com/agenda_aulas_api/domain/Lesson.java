@@ -23,11 +23,11 @@ public class Lesson implements Serializable {
     @Column(name = "idLesson", updatable = false, unique = true, nullable = false)
     private UUID idLesson;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "discipline_id", nullable = false)
     private Discipline discipline;
 
@@ -40,25 +40,17 @@ public class Lesson implements Serializable {
 
     private String location;
 
-    @ManyToMany
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "schedule_class_id")
+    private ScheduleClass scheduleClass;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     @JoinTable(
             name = "lesson_students",
             joinColumns = @JoinColumn(name = "lesson_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
     private Set<Student> students = new HashSet<>();
-
-    @ManyToOne
-    @JoinColumn(name = "schedule_class_id")
-    private ScheduleClass scheduleClass;
-
-    public void addStudent(Student student) {
-        if (students.size() < availableSlots) {
-            students.add(student);
-        } else {
-            throw new IllegalStateException("No available slots");
-        }
-    }
 
     @Override
     public int hashCode() {
@@ -71,5 +63,13 @@ public class Lesson implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         Lesson lesson = (Lesson) o;
         return Objects.equals(idLesson, lesson.idLesson);
+    }
+
+    public void addStudent(Student student) {
+        if (students.size() < availableSlots) {
+            students.add(student);
+        } else {
+            throw new IllegalStateException("No available slots");
+        }
     }
 }

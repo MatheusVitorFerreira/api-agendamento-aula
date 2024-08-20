@@ -1,17 +1,24 @@
 package com.agenda_aulas_api.service;
 
-import com.agenda_aulas_api.domain.Lesson;
-import com.agenda_aulas_api.domain.ScheduleClass;
+import com.agenda_aulas_api.domain.*;
 import com.agenda_aulas_api.dto.ScheduleClassDTO;
-import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
-import com.agenda_aulas_api.exception.erros.LessonNotFoundException;
-import com.agenda_aulas_api.exception.erros.ScheduleClassRepositoryNotFoundException;
+import com.agenda_aulas_api.dto.record.LessonRecordDTO;
+import com.agenda_aulas_api.dto.record.ScheduleRecord;
+import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.LessonRepository;
 import com.agenda_aulas_api.repository.ScheduleClassRepository;
+import com.agenda_aulas_api.repository.ScheduleClassStudentRepository;
+import com.agenda_aulas_api.repository.ScheduleClassTeacherRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,57 +28,151 @@ public class ScheduleClassService {
 
     private final ScheduleClassRepository scheduleClassRepository;
     private final LessonRepository lessonRepository;
+    private final ScheduleClassTeacherRepository scheduleClassTeacherRepository;
+    private final ScheduleClassStudentRepository scheduleClassStudentRepository;
 
     public List<ScheduleClassDTO> findAll() {
         try {
             List<ScheduleClass> scheduleClasses = scheduleClassRepository.findAll();
-            return scheduleClasses.stream()
-                    .map(ScheduleClassDTO::fromScheduleClass)
-                    .collect(Collectors.toList());
+            return scheduleClasses.stream().map(ScheduleClassDTO::fromScheduleClass).collect(Collectors.toList());
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
 
-    public ScheduleClassDTO findById(UUID idScheduleClass) {
+    public Page<ScheduleRecord> findPageScheduleClass(Integer page, Integer linesPerPage, String orderBy, String direction) {
+        try {
+            PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
+            return scheduleClassRepository.findAll(pageRequest).map(ScheduleRecord::fromScheduleClass);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUrlException("Invalid URL or sorting parameter: " + e.getMessage());
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+        }
+    }
+
+    public ScheduleRecord findById(UUID idScheduleClass) {
         try {
             ScheduleClass scheduleClass = scheduleClassRepository.findById(idScheduleClass)
-                    .orElseThrow(() ->
-                            new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: " + idScheduleClass));
-            return ScheduleClassDTO.fromScheduleClass(scheduleClass);
+                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: " + idScheduleClass));
+
+            LessonRecordDTO lessonRecordDTO = null;
+            if (scheduleClass.getLesson() != null) {
+                Lesson lesson = scheduleClass.getLesson();
+                lessonRecordDTO = new LessonRecordDTO(
+                        lesson.getIdLesson(),
+                        lesson.getTeacher() != null ? lesson.getTeacher().getIdTeacher() : null,
+                        lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
+                        lesson.getStartTime(),
+                        lesson.getEndTime(),
+                        lesson.getAvailableSlots(),
+                        lesson.getStatus(),
+                        lesson.getStudents().stream().map(Student::getIdStudent).collect(Collectors.toList()),
+                        lesson.getLocation()
+                );
+            }
+
+            return new ScheduleRecord(scheduleClass.getIdClassSchedule(), scheduleClass.getWeekDays(), lessonRecordDTO);
+        } catch (ScheduleClassRepositoryNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
 
-    public ScheduleClassDTO createOrUpdateScheduleClass(ScheduleClassDTO scheduleClassDTO) {
+    public ScheduleClassDTO createScheduleClass(ScheduleClassDTO scheduleClassDTO) {
         try {
-            ScheduleClass scheduleClass;
-            if (scheduleClassDTO.getIdClass() != null) {
-                scheduleClass = scheduleClassRepository.findById(scheduleClassDTO.getIdClass())
-                        .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: " + scheduleClassDTO.getIdClass()));
-            } else {
-                scheduleClass = new ScheduleClass();
-            }
+            ScheduleClass scheduleClass = scheduleClassDTO.toScheduleClass();
 
-            if (scheduleClassDTO.getLessonIds() != null) {
-                List<Lesson> lessons = lessonRepository.findAllById(scheduleClassDTO.getLessonIds());
-                if (lessons.size() != scheduleClassDTO.getLessonIds().size()) {
-                    throw new LessonNotFoundException("One or more Lessons not found");
+            if (scheduleClassDTO.getLessonId() != null) {
+                Lesson lesson = lessonRepository.findById(scheduleClassDTO.getLessonId())
+                        .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + scheduleClassDTO.getLessonId()));
+
+                if (lesson.getAvailableSlots() <= 0) {
+                    throw new NoAvailableSlotsException("Cannot schedule class. Lesson does not have available slots.");
                 }
-                scheduleClass.setLessons(lessons);
+
+                scheduleClass.setLesson(lesson);
+                ScheduleClass savedScheduleClass = scheduleClassRepository.save(scheduleClass);
+
+                lesson.setScheduleClass(savedScheduleClass);
+                lessonRepository.save(lesson);
+
+                for (DayOfWeek dayOfWeek : savedScheduleClass.getWeekDays()) {
+                    ScheduleClassTeacher scheduleClassTeacher = new ScheduleClassTeacher();
+                    scheduleClassTeacher.setDayOfWeek(dayOfWeek);
+                    scheduleClassTeacher.setScheduleClass(savedScheduleClass);
+                    scheduleClassTeacher.setLesson(lesson);
+                    scheduleClassTeacher.setStartTime(lesson.getStartTime());
+                    scheduleClassTeacher.setEndTime(lesson.getEndTime());
+                    scheduleClassTeacher.setTeacher(lesson.getTeacher());
+
+                    if (scheduleClassTeacher.getTeacher() == null) {
+                        throw new IllegalStateException("Cannot schedule class. Lesson does not have an assigned teacher.");
+                    }
+
+                    scheduleClassTeacherRepository.save(scheduleClassTeacher);
+                }
+
+                return ScheduleClassDTO.fromScheduleClass(savedScheduleClass);
             } else {
-                scheduleClass.setLessons(null);
+                throw new IllegalArgumentException("Lesson ID must be provided to schedule a class.");
+            }
+        } catch (IllegalArgumentException | NoAvailableSlotsException e) {
+            throw new IllegalStateException("Failed to schedule class: " + e.getMessage());
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ScheduleClassDTO updateScheduleClass(ScheduleClassDTO scheduleClassDTO, UUID idClass) {
+        try {
+            ScheduleClass existingSchedule = scheduleClassRepository.findById(idClass)
+                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Schedule Class not found with id: " + idClass));
+
+            existingSchedule.setWeekDays(scheduleClassDTO.getWeekDays());
+
+            if (scheduleClassDTO.getLessonId() != null) {
+                Lesson lesson = lessonRepository.findById(scheduleClassDTO.getLessonId())
+                        .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + scheduleClassDTO.getLessonId()));
+
+                if (lesson.getAvailableSlots() <= 0) {
+                    throw new NoAvailableSlotsException("Cannot update class. Lesson does not have available slots.");
+                }
+
+                lesson.setStatus(StatusClass.CONFIRMED);
+                lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
+                lessonRepository.save(lesson);
+
+                existingSchedule.setLesson(lesson);
+            } else {
+                existingSchedule.setLesson(null);
             }
 
-            scheduleClass.setWeekDays(scheduleClassDTO.getWeekDays());
-            scheduleClass.setLocation(scheduleClassDTO.getLocation());
-
-            ScheduleClass savedScheduleClass = scheduleClassRepository.save(scheduleClass);
-            return ScheduleClassDTO.fromScheduleClass(savedScheduleClass);
-
+            ScheduleClass updatedScheduleClass = scheduleClassRepository.save(existingSchedule);
+            return ScheduleClassDTO.fromScheduleClass(updatedScheduleClass);
+        } catch (LessonNotFoundException | NoAvailableSlotsException | IllegalArgumentException e) {
+            throw new IllegalStateException("Failed to update schedule class: " + e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create or update ScheduleClass: " + e.getMessage(), e);
+            throw new DatabaseNegatedAccessException("Failed to update Lesson in the database: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void deleteScheduleClass(UUID idScheduleClass) {
+        try {
+            ScheduleClass scheduleClass = scheduleClassRepository.findById(idScheduleClass)
+                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found"));
+
+            // Remova todas as associações relacionadas
+            scheduleClassTeacherRepository.deleteByScheduleClassId(idScheduleClass);
+            scheduleClassStudentRepository.deleteByScheduleClassId(idScheduleClass);
+
+            // Finalmente, remova a ScheduleClass
+            scheduleClassRepository.delete(scheduleClass);
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to delete ScheduleClass: " + e.getMessage());
         }
     }
 }

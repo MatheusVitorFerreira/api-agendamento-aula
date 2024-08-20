@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -17,8 +17,8 @@ public class ScheduleClass {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_class", updatable = false, unique = true, nullable = false)
-    private UUID idClass;
+    @Column(name = "id_class_schedule", updatable = false, unique = true, nullable = false)
+    private UUID idClassSchedule;
 
     @ElementCollection(targetClass = DayOfWeek.class)
     @Enumerated(EnumType.STRING)
@@ -26,11 +26,17 @@ public class ScheduleClass {
 
     private String location;
 
-    @OneToMany(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Lesson> lessons = new ArrayList<>();
+    @OneToOne(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Lesson lesson;
 
-    public void addLesson(Lesson lesson) {
-        lessons.add(lesson);
-        lesson.setScheduleClass(this);
+    public void setLesson(Lesson lesson) {
+        if (lesson == null) {
+            if (this.lesson != null) {
+                this.lesson.setScheduleClass(null);
+            }
+        } else {
+            lesson.setScheduleClass(this);
+        }
+        this.lesson = lesson;
     }
 }

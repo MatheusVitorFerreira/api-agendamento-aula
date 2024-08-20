@@ -1,19 +1,26 @@
 package com.agenda_aulas_api.dto;
 
 import com.agenda_aulas_api.domain.Lesson;
+import com.agenda_aulas_api.domain.ScheduleClass;
 import com.agenda_aulas_api.domain.StatusClass;
+import com.agenda_aulas_api.domain.Student;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class LessonDTO {
+
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private UUID idLesson;
     private UUID teacherId;
@@ -23,8 +30,8 @@ public class LessonDTO {
     private int availableSlots;
     private StatusClass status;
     private String location;
-
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private List<UUID> students;
+    private List<DayOfWeek> weekDays;
 
     public static LessonDTO fromLesson(Lesson lesson) {
         return new LessonDTO(
@@ -35,7 +42,11 @@ public class LessonDTO {
                 lesson.getEndTime() != null ? lesson.getEndTime().format(TIME_FORMATTER) : null,
                 lesson.getAvailableSlots(),
                 lesson.getStatus(),
-                lesson.getLocation()
+                lesson.getLocation(),
+                lesson.getStudents() != null ?
+                        lesson.getStudents().stream().map(Student::getIdStudent).collect(Collectors.toList()) :
+                        null,
+                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getWeekDays() : null
         );
     }
 
@@ -47,6 +58,13 @@ public class LessonDTO {
         lesson.setAvailableSlots(this.availableSlots);
         lesson.setStatus(this.status);
         lesson.setLocation(this.location);
+
+        if (this.weekDays != null) {
+            ScheduleClass scheduleClass = new ScheduleClass();
+            scheduleClass.setWeekDays(this.weekDays);
+            lesson.setScheduleClass(scheduleClass);
+        }
+
         return lesson;
     }
 }

@@ -8,35 +8,28 @@ import lombok.NoArgsConstructor;
 import java.time.DayOfWeek;
 import java.util.List;
 import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleClassDTO {
 
-    private UUID idClass;
+    private UUID idClassSchedule;
     private List<DayOfWeek> weekDays;
-    private String location;
-    private List<UUID> lessonIds;
+    private UUID lessonId;
 
     public static ScheduleClassDTO fromScheduleClass(ScheduleClass scheduleClass) {
         return new ScheduleClassDTO(
-                scheduleClass.getIdClass(),
+                scheduleClass.getIdClassSchedule(),
                 scheduleClass.getWeekDays(),
-                scheduleClass.getLocation(),
-                scheduleClass.getLessons() != null ?
-                        scheduleClass.getLessons().stream()
-                                .map(lesson -> lesson.getIdLesson())
-                                .toList()
-                        : null
+                scheduleClass.getLesson() != null ?
+                        scheduleClass.getLesson().getIdLesson() : null
         );
     }
 
     public ScheduleClass toScheduleClass() {
         ScheduleClass scheduleClass = new ScheduleClass();
-        scheduleClass.setIdClass(this.idClass);
+        scheduleClass.setIdClassSchedule(this.idClassSchedule);
         scheduleClass.setWeekDays(this.weekDays);
-        scheduleClass.setLocation(this.location);
         return scheduleClass;
     }
 }

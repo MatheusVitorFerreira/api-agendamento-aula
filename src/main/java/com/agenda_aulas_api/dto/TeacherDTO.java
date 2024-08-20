@@ -1,6 +1,7 @@
 package com.agenda_aulas_api.dto;
 
 import com.agenda_aulas_api.domain.Teacher;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TeacherDTO {
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID idTeacher;
     private String fullName;
     private String job;
