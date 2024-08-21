@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,6 +29,12 @@ public class ScheduleClass {
 
     @OneToOne(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
     private Lesson lesson;
+
+    @OneToMany(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScheduleClassTeacher> scheduleClassTeachers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScheduleClassStudent> scheduleClassStudents = new ArrayList<>();
 
     public void setLesson(Lesson lesson) {
         if (lesson == null) {

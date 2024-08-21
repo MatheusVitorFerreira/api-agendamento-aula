@@ -98,6 +98,7 @@ public class TeacherService {
         Teacher teacher = teacherRepository.findById(teacherId)
                 .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + teacherId));
 
+
         Discipline discipline = disciplineRepository.findById(disciplineRecord.disciplineId())
                 .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
                         + disciplineRecord.disciplineId()));

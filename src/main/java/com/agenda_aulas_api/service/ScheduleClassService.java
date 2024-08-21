@@ -163,15 +163,24 @@ public class ScheduleClassService {
     public void deleteScheduleClass(UUID idScheduleClass) {
         try {
             ScheduleClass scheduleClass = scheduleClassRepository.findById(idScheduleClass)
-                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found"));
+                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: " + idScheduleClass));
 
-            // Remova todas as associações relacionadas
-            scheduleClassTeacherRepository.deleteByScheduleClassId(idScheduleClass);
-            scheduleClassStudentRepository.deleteByScheduleClassId(idScheduleClass);
+            // Remove a Lesson associada (se houver)
+            Lesson lesson = scheduleClass.getLesson();
+            if (lesson != null) {
+                // Remova a associação com ScheduleClass
+                lesson.setScheduleClass(null);
 
-            // Finalmente, remova a ScheduleClass
+                // Atualize a Lesson antes de deletar
+                lessonRepository.save(lesson);
+
+                // Agora é seguro deletar a Lesson
+                lessonRepository.delete(lesson);
+            }
+
+            // Remove ScheduleClass
             scheduleClassRepository.delete(scheduleClass);
-        } catch (Exception e) {
+        }catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to delete ScheduleClass: " + e.getMessage());
         }
     }

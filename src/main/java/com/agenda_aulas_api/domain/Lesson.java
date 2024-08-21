@@ -23,11 +23,11 @@ public class Lesson implements Serializable {
     @Column(name = "idLesson", updatable = false, unique = true, nullable = false)
     private UUID idLesson;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     @JoinColumn(name = "discipline_id", nullable = false)
     private Discipline discipline;
 
@@ -40,7 +40,7 @@ public class Lesson implements Serializable {
 
     private String location;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     @JoinColumn(name = "schedule_class_id")
     private ScheduleClass scheduleClass;
 
