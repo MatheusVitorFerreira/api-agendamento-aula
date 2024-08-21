@@ -8,14 +8,15 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "schedule_class_students")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleClassStudent implements Serializable {
+public class TimeTable implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -42,7 +43,11 @@ public class ScheduleClassStudent implements Serializable {
     @JoinColumn(name = "schedule_class_id", nullable = true)
     private ScheduleClass scheduleClass;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @ManyToMany
+    @JoinTable(
+            name = "schedule_class_student",
+            joinColumns = @JoinColumn(name = "student_scheduling_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private List<Student> students = new ArrayList<>();
 }

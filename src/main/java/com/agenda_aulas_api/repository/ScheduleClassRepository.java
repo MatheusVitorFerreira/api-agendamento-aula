@@ -10,4 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface ScheduleClassRepository extends JpaRepository<ScheduleClass, UUID> {
+
 }

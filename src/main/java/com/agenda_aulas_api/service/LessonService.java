@@ -25,7 +25,7 @@ public class LessonService {
     private final TeacherRepository teacherRepository;
     private final DisciplineRepository disciplineRepository;
     private final StudentRepository studentRepository;
-    private final ScheduleClassStudentRepository scheduleClassStudentRepository;
+    private final TimeTableRepository timeTableRepository;
 
     public List<Map<String, Object>> findAll() {
         try {
@@ -163,20 +163,18 @@ public class LessonService {
             lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
             lessonRepository.save(lesson);
 
-            // Atualiza a relação entre aluno e lição
             if (!student.getLessons().contains(lesson)) {
                 student.getLessons().add(lesson);
                 studentRepository.save(student);
             }
+            TimeTable timeTable = new TimeTable();
+            timeTable.setLesson(lesson);
+            timeTable.setStartTime(lesson.getStartTime());
+            timeTable.setEndTime(lesson.getEndTime());
 
+            timeTable.getStudents().add(student);
 
-            ScheduleClassStudent scheduleClassStudent = new ScheduleClassStudent();
-            scheduleClassStudent.setLesson(lesson);
-            scheduleClassStudent.setStudent(student);
-            scheduleClassStudent.setStartTime(lesson.getStartTime());
-            scheduleClassStudent.setEndTime(lesson.getEndTime());
-
-            scheduleClassStudentRepository.save(scheduleClassStudent);
+            timeTableRepository.save(timeTable);
         } else {
             throw new NoAvailableSlotsException("No available slots for this lesson.");
         }

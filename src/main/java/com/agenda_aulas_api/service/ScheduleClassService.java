@@ -7,7 +7,7 @@ import com.agenda_aulas_api.dto.record.ScheduleRecord;
 import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.LessonRepository;
 import com.agenda_aulas_api.repository.ScheduleClassRepository;
-import com.agenda_aulas_api.repository.ScheduleClassStudentRepository;
+import com.agenda_aulas_api.repository.TimeTableRepository;
 import com.agenda_aulas_api.repository.ScheduleClassTeacherRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,7 +29,7 @@ public class ScheduleClassService {
     private final ScheduleClassRepository scheduleClassRepository;
     private final LessonRepository lessonRepository;
     private final ScheduleClassTeacherRepository scheduleClassTeacherRepository;
-    private final ScheduleClassStudentRepository scheduleClassStudentRepository;
+    private final TimeTableRepository timeTableRepository;
 
     public List<ScheduleClassDTO> findAll() {
         try {
@@ -54,7 +54,8 @@ public class ScheduleClassService {
     public ScheduleRecord findById(UUID idScheduleClass) {
         try {
             ScheduleClass scheduleClass = scheduleClassRepository.findById(idScheduleClass)
-                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: " + idScheduleClass));
+                    .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found with id: "
+                            + idScheduleClass));
 
             LessonRecordDTO lessonRecordDTO = null;
             if (scheduleClass.getLesson() != null) {
@@ -88,8 +89,9 @@ public class ScheduleClassService {
                 Lesson lesson = lessonRepository.findById(scheduleClassDTO.getLessonId())
                         .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + scheduleClassDTO.getLessonId()));
 
-                if (lesson.getAvailableSlots() <= 0) {
-                    throw new NoAvailableSlotsException("Cannot schedule class. Lesson does not have available slots.");
+                // Corrigir a verificação de disponibilidade de vagas
+                if (lesson.getAvailableSlots()  > 0) { // Corrigido: Se não há vagas disponíveis
+                    throw new NoAvailableSlotsException("Cannot schedule class. No available slots.");
                 }
 
                 scheduleClass.setLesson(lesson);
@@ -98,6 +100,7 @@ public class ScheduleClassService {
                 lesson.setScheduleClass(savedScheduleClass);
                 lessonRepository.save(lesson);
 
+                // Criar ScheduleClassTeacher
                 for (DayOfWeek dayOfWeek : savedScheduleClass.getWeekDays()) {
                     ScheduleClassTeacher scheduleClassTeacher = new ScheduleClassTeacher();
                     scheduleClassTeacher.setDayOfWeek(dayOfWeek);
@@ -112,6 +115,24 @@ public class ScheduleClassService {
                     }
 
                     scheduleClassTeacherRepository.save(scheduleClassTeacher);
+                }
+                for (DayOfWeek dayOfWeek : savedScheduleClass.getWeekDays()) {
+                    TimeTable timeTable = timeTableRepository.findByLessonIdAndDayOfWeek(lesson.getIdLesson(), dayOfWeek)
+                            .orElse(new TimeTable());
+                    if (timeTable.getStudentSchedulingId() == null) {
+                        timeTable.setLesson(lesson);
+                        timeTable.setDayOfWeek(dayOfWeek);
+                        timeTable.setScheduleClass(savedScheduleClass);
+                    }
+
+                    timeTable.setStartTime(lesson.getStartTime());
+                    timeTable.setEndTime(lesson.getEndTime());
+
+                    if (timeTable.getStudents() == null || timeTable.getStudents().isEmpty()) {
+                        timeTable.setStudents(new ArrayList<>(lesson.getStudents())); // Corrigido
+                    }
+
+                    timeTableRepository.save(timeTable);
                 }
 
                 return ScheduleClassDTO.fromScheduleClass(savedScheduleClass);
@@ -165,12 +186,15 @@ public class ScheduleClassService {
             ScheduleClass scheduleClass = scheduleClassRepository.findById(idScheduleClass)
                     .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("ScheduleClass not found"));
 
-            // Remova todas as associações relacionadas
-            scheduleClassTeacherRepository.deleteByScheduleClassId(idScheduleClass);
-            scheduleClassStudentRepository.deleteByScheduleClassId(idScheduleClass);
-
-            // Finalmente, remova a ScheduleClass
+            Lesson lesson = scheduleClass.getLesson();
+            if(lesson != null){
+                lesson.setScheduleClass(null);
+                lessonRepository.save(lesson);
+                lessonRepository.delete(lesson);
+            }
             scheduleClassRepository.delete(scheduleClass);
+
+
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to delete ScheduleClass: " + e.getMessage());
         }
