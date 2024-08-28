@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -29,7 +26,7 @@ public class Student extends Person implements Serializable {
     private String progress;
 
     @ManyToMany(mappedBy = "students")
-    private Set<Lesson> lessons = new HashSet<>();
+    private List<Lesson> lessons = new ArrayList<>();
 
     @Override
     public int hashCode() {

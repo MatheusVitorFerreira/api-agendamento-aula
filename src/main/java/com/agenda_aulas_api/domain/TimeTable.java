@@ -22,8 +22,8 @@ public class TimeTable implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "student_scheduling_id", updatable = false, unique = true, nullable = false)
-    private UUID studentSchedulingId;
+    @Column(name = "control_scheduling_id", updatable = false, unique = true, nullable = false)
+    private UUID controlSchedulingId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
@@ -43,6 +43,10 @@ public class TimeTable implements Serializable {
     @JoinColumn(name = "schedule_class_id", nullable = true)
     private ScheduleClass scheduleClass;
 
+    @ManyToOne
+    @JoinColumn(name = "teacher_id", nullable = true)
+    private Teacher teacher;
+
     @ManyToMany
     @JoinTable(
             name = "schedule_class_student",
@@ -50,4 +54,5 @@ public class TimeTable implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
     private List<Student> students = new ArrayList<>();
+
 }

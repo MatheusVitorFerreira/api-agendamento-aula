@@ -12,7 +12,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class AddressDTO {
 
-    private UUID id;
     private String street;
     private String number;
     private String city;
@@ -22,7 +21,6 @@ public class AddressDTO {
 
     public Address toAddress() {
         Address address = new Address();
-        address.setId(this.id);
         address.setStreet(this.street);
         address.setNumber(this.number);
         address.setCity(this.city);
@@ -34,7 +32,6 @@ public class AddressDTO {
 
     public static AddressDTO fromAddress(Address address) {
         return new AddressDTO(
-                address.getId(),
                 address.getStreet(),
                 address.getNumber(),
                 address.getCity(),

@@ -1,6 +1,7 @@
 package com.agenda_aulas_api.Controller;
 
 import com.agenda_aulas_api.dto.LessonDTO;
+import com.agenda_aulas_api.dto.record.LessonRequestRecordDTO;
 import com.agenda_aulas_api.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +34,12 @@ public class LessonController {
     }
 
     @PostMapping
-    public ResponseEntity<LessonDTO> createLesson(@Valid @RequestBody LessonDTO lessonDTO) {
-        LessonDTO createdLesson = lessonService.createLesson(lessonDTO);
+    public ResponseEntity<LessonRequestRecordDTO> createLesson(@Valid @RequestBody LessonRequestRecordDTO lessonRequestRecordDTO) {
+        LessonRequestRecordDTO createdLesson = lessonService.createLesson(lessonRequestRecordDTO);
         URI headerLocation = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(createdLesson.getIdLesson())
+                .buildAndExpand(createdLesson.toLesson().getIdLesson())
                 .toUri();
         return ResponseEntity.created(headerLocation).body(createdLesson);
     }
@@ -52,15 +53,6 @@ public class LessonController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLesson(@PathVariable UUID id) {
         lessonService.deleteLesson(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{lessonId}/students")
-    public ResponseEntity<Void> addStudentToLesson(
-            @PathVariable UUID lessonId,
-            @RequestBody Map<String, UUID> payload) {
-        UUID studentId = payload.get("idStudent");
-        lessonService.addStudentToLesson(lessonId, studentId);
         return ResponseEntity.noContent().build();
     }
 

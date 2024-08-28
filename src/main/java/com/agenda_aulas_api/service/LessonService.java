@@ -2,7 +2,7 @@ package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.*;
 import com.agenda_aulas_api.dto.LessonDTO;
-import com.agenda_aulas_api.dto.record.LessonRecordDTO;
+import com.agenda_aulas_api.dto.record.LessonRequestRecordDTO;
 import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.*;
 import jakarta.transaction.Transactional;
@@ -12,8 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,8 +33,6 @@ public class LessonService {
                         filteredMap.put("idLesson", lesson.getIdLesson());
                         filteredMap.put("scheduleClassId", lesson.getScheduleClass() != null
                                 ? lesson.getScheduleClass().getIdClassSchedule() : "Não Agendada");
-                        filteredMap.put("startTime", lesson.getStartTime());
-                        filteredMap.put("endTime", lesson.getEndTime());
                         filteredMap.put("availableSlots", lesson.getAvailableSlots());
                         return filteredMap;
                     })
@@ -55,8 +51,6 @@ public class LessonService {
                         Map<String, Object> filteredMap = new HashMap<>();
                         filteredMap.put("idLesson", lesson.getIdLesson());
                         filteredMap.put("scheduleClassId", "Não Agendada");
-                        filteredMap.put("startTime", lesson.getStartTime());
-                        filteredMap.put("endTime", lesson.getEndTime());
                         filteredMap.put("availableSlots", lesson.getAvailableSlots());
                         return filteredMap;
                     })
@@ -76,10 +70,10 @@ public class LessonService {
         }
     }
 
-    public Page<LessonRecordDTO> findPageLesson(Integer page, Integer linesPerPage, String orderBy, String direction) {
+    public Page<LessonRequestRecordDTO> findPageLesson(Integer page, Integer linesPerPage, String orderBy, String direction) {
         try {
             PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
-            return lessonRepository.findAll(pageRequest).map(LessonRecordDTO::fromLesson);
+            return lessonRepository.findAll(pageRequest).map(LessonRequestRecordDTO::fromLesson);
         } catch (IllegalArgumentException e) {
             throw new InvalidUrlException("Invalid URL or sorting parameter: " + e.getMessage());
         } catch (Exception e) {
@@ -88,28 +82,26 @@ public class LessonService {
     }
 
     @Transactional
-    public LessonDTO createLesson(LessonDTO lessonDTO) {
+    public LessonRequestRecordDTO createLesson(LessonRequestRecordDTO lessonRequestRecordDTO) {
         try {
-            Lesson lesson = lessonDTO.toLesson();
-            Teacher teacher = teacherRepository.findById(lessonDTO.getTeacherId())
+            Lesson lesson = lessonRequestRecordDTO.toLesson();
+            Teacher teacher = teacherRepository.findById(lessonRequestRecordDTO.teacherId())
                     .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: "
-                            + lessonDTO.getTeacherId()));
+                            + lessonRequestRecordDTO.teacherId()));
             lesson.setTeacher(teacher);
 
-            Discipline discipline = disciplineRepository.findById(lessonDTO.getDisciplineId())
+            Discipline discipline = disciplineRepository.findById(lessonRequestRecordDTO.disciplineId())
                     .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
-                            + lessonDTO.getDisciplineId()));
+                            + lessonRequestRecordDTO.disciplineId()));
             lesson.setDiscipline(discipline);
 
             Lesson savedLesson = lessonRepository.save(lesson);
-
-            return LessonDTO.fromLesson(savedLesson);
+            return LessonRequestRecordDTO.fromLesson(savedLesson);
 
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to create Lesson: " + e.getMessage());
         }
     }
-
 
     @Transactional
     public LessonDTO updateLesson(LessonDTO lessonDTO, UUID idLesson) {
@@ -129,8 +121,6 @@ public class LessonService {
 
             existingLesson.setAvailableSlots(lessonDTO.getAvailableSlots());
             existingLesson.setLocation(lessonDTO.getLocation());
-            existingLesson.setStartTime(LocalTime.parse(lessonDTO.getStartTime(), LessonDTO.TIME_FORMATTER));
-            existingLesson.setEndTime(LocalTime.parse(lessonDTO.getEndTime(), LessonDTO.TIME_FORMATTER));
 
             Lesson updatedLesson = lessonRepository.save(existingLesson);
             return LessonDTO.fromLesson(updatedLesson);
@@ -147,36 +137,6 @@ public class LessonService {
             lessonRepository.delete(lesson);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to delete Lesson: " + e.getMessage());
-        }
-    }
-    @Transactional
-    public void addStudentToLesson(UUID lessonId, UUID studentId) {
-        Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + lessonId));
-
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + studentId));
-
-        if (lesson.getAvailableSlots() > 0) {
-            // Adiciona aluno à lição
-            lesson.addStudent(student);
-            lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
-            lessonRepository.save(lesson);
-
-            if (!student.getLessons().contains(lesson)) {
-                student.getLessons().add(lesson);
-                studentRepository.save(student);
-            }
-            TimeTable timeTable = new TimeTable();
-            timeTable.setLesson(lesson);
-            timeTable.setStartTime(lesson.getStartTime());
-            timeTable.setEndTime(lesson.getEndTime());
-
-            timeTable.getStudents().add(student);
-
-            timeTableRepository.save(timeTable);
-        } else {
-            throw new NoAvailableSlotsException("No available slots for this lesson.");
         }
     }
 }

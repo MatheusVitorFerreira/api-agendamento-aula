@@ -60,7 +60,6 @@ public class AddressService {
         }
     }
 
-
     @Transactional
     public AddressDTO updateAddress(AddressDTO objDto, UUID idAddress) {
         try {

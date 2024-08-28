@@ -6,10 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalTime;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -20,7 +19,7 @@ public class Lesson implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "idLesson", updatable = false, unique = true, nullable = false)
+    @Column(name = "id_lesson", updatable = false, unique = true, nullable = false)
     private UUID idLesson;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -31,8 +30,6 @@ public class Lesson implements Serializable {
     @JoinColumn(name = "discipline_id", nullable = false)
     private Discipline discipline;
 
-    private LocalTime startTime;
-    private LocalTime endTime;
     private int availableSlots;
 
     @Enumerated(EnumType.STRING)
@@ -40,17 +37,19 @@ public class Lesson implements Serializable {
 
     private String location;
 
+    private ClassShift classShift;
+
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "schedule_class_id")
     private ScheduleClass scheduleClass;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "lesson_students",
             joinColumns = @JoinColumn(name = "lesson_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    private Set<Student> students = new HashSet<>();
+    private List<Student> students = new ArrayList<>();
 
     @Override
     public int hashCode() {
@@ -66,10 +65,10 @@ public class Lesson implements Serializable {
     }
 
     public void addStudent(Student student) {
-        if (students.size() < availableSlots) {
-            students.add(student);
-        } else {
-            throw new IllegalStateException("No available slots");
+        if (this.students == null) {
+            this.students = new ArrayList<>();
         }
+        this.students.add(student);
     }
+
 }
