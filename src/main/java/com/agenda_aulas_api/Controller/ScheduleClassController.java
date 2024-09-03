@@ -1,22 +1,21 @@
 package com.agenda_aulas_api.Controller;
 
+import com.agenda_aulas_api.domain.ScheduleClass;
+import com.agenda_aulas_api.dto.LessonDTO;
 import com.agenda_aulas_api.dto.ScheduleClassDTO;
-import com.agenda_aulas_api.dto.StudentDTO;
 import com.agenda_aulas_api.dto.record.LessonRecord;
 import com.agenda_aulas_api.dto.record.ScheduleRequestRecord;
-import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
-import com.agenda_aulas_api.exception.erros.NoAvailableSlotsException;
-import com.agenda_aulas_api.exception.erros.ScheduleClassRepositoryNotFoundException;
-import com.agenda_aulas_api.exception.erros.StudentNotFoundException;
 import com.agenda_aulas_api.service.ScheduleClassService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -38,24 +37,34 @@ public class ScheduleClassController {
         return ResponseEntity.ok(scheduleRequestRecord);
     }
 
+    @GetMapping("/available-classes")
+    public ResponseEntity<List<ScheduleRequestRecord>> getAvailableClassesForEnrollment() {
+        List<ScheduleRequestRecord> scheduleRequestRecord = scheduleClassService.getAvailableClassesForEnrollment();
+        return ResponseEntity.ok(scheduleRequestRecord);
+    }
+
     @GetMapping("/page")
     public ResponseEntity<Page<ScheduleRequestRecord>> findPageScheduleClass(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "linesPerPage", defaultValue = "24") Integer linesPerPage,
-            @RequestParam(value = "orderBy", defaultValue = "idClass") String orderBy,
+            @RequestParam(value = "orderBy", defaultValue = "idClassSchedule") String orderBy,
             @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
-        Page<ScheduleRequestRecord> scheduleRecords = scheduleClassService.findPageScheduleClass(page, linesPerPage, orderBy, direction);
+        Page<ScheduleRequestRecord> scheduleRecords =
+                scheduleClassService.findPageScheduleClass(page, linesPerPage, orderBy, direction);
         return ResponseEntity.ok(scheduleRecords);
     }
 
-    @PostMapping
+
+    @PostMapping()
     public ResponseEntity<ScheduleClassDTO> createScheduleClass(@RequestBody ScheduleClassDTO scheduleClassDTO) {
         ScheduleClassDTO createdScheduleClass = scheduleClassService.createScheduleClass(scheduleClassDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdScheduleClass);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ScheduleClassDTO> updateScheduleClass(@RequestBody ScheduleClassDTO scheduleClassDTO, @PathVariable UUID id) {
+    public ResponseEntity<ScheduleClassDTO> updateScheduleClass(
+            @RequestBody ScheduleClassDTO scheduleClassDTO,
+            @PathVariable UUID id) {
         ScheduleClassDTO updatedScheduleClass = scheduleClassService.updateScheduleClass(scheduleClassDTO, id);
         return ResponseEntity.ok(updatedScheduleClass);
     }
@@ -66,16 +75,12 @@ public class ScheduleClassController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{scheduleClassId}/add-student")
-    public ResponseEntity<Void> addStudentToScheduleClass(
+    @PostMapping("/{scheduleClassId}/students")
+    public ResponseEntity<String> addStudentToScheduleClass(
             @PathVariable UUID scheduleClassId,
-            @RequestBody LessonRecord lessonRecord) {
+            @RequestBody @Valid LessonRecord lessonRecord) {
+            scheduleClassService.addStudentToScheduleClass(scheduleClassId, lessonRecord.studentId());
+            return ResponseEntity.status(HttpStatus.OK).body("Aluno adicionado com sucesso.");
 
-        try {
-            scheduleClassService.addStudentToScheduleClass(lessonRecord, scheduleClassId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
     }
 }

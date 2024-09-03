@@ -1,6 +1,6 @@
 package com.agenda_aulas_api.dto;
 
-import com.agenda_aulas_api.domain.ClassShift;
+
 import com.agenda_aulas_api.domain.ScheduleClass;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -26,15 +26,15 @@ public class ScheduleClassDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime endTime;
 
-    private ClassShift classShift;
+
+
 
     public static ScheduleClassDTO fromScheduleClass(ScheduleClass scheduleClass) {
         return new ScheduleClassDTO(
                 scheduleClass.getWeekDays(),
                 scheduleClass.getLesson() != null ? scheduleClass.getLesson().getIdLesson() : null,
                 scheduleClass.getStartTime(),
-                scheduleClass.getEndTime(),
-                scheduleClass.getClassShift()
+                scheduleClass.getEndTime()
         );
     }
 
@@ -43,7 +43,7 @@ public class ScheduleClassDTO {
         scheduleClass.setWeekDays(this.weekDays);
         scheduleClass.setStartTime(this.startTime);
         scheduleClass.setEndTime(this.endTime);
-        scheduleClass.setClassShift(this.classShift);
         return scheduleClass;
     }
+
 }

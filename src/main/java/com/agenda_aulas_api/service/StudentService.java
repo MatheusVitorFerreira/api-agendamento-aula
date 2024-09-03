@@ -111,7 +111,10 @@ public class StudentService {
             Student student = obj.toStudent();
             boolean existingStudent = studentRepository.existsByFullNameAndCpf(student.getFullName(), student.getCpf());
             if (existingStudent) {
-                throw new DuplicateEntityException("Student already exists with full name: " + student.getFullName() + " and CPF: " + student.getCpf());
+                throw new DuplicateEntityException(
+                        "Student already exists with full name: "
+                                + student.getFullName()
+                                + " and CPF: " + student.getCpf());
             }
             student = studentRepository.save(student);
             return StudentDTO.fromStudent(student);

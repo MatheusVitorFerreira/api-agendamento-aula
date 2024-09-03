@@ -33,7 +33,8 @@ public record ScheduleRequestRecord(
                     lesson.getStudents() != null ?
                             lesson.getStudents().stream().map(Student::getIdStudent).collect(Collectors.toList()) :
                             null,
-                    lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null
+                    lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
+                    lesson.getClassShift()
             );
         }
 

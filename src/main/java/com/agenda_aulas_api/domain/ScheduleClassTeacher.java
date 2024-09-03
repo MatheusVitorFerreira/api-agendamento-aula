@@ -8,6 +8,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -20,11 +21,9 @@ public class ScheduleClassTeacher {
     @Column(name = "teacher_scheduling_id", updatable = false, unique = true, nullable = false)
     private UUID teacherSchedulingId;
 
+    @Column(name = "days_of_week", nullable = false)
     @ElementCollection(targetClass = DayOfWeek.class)
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "schedule_class_teacher_weekdays",
-            joinColumns = @JoinColumn(name = "teacher_scheduling_id"))
-    @Column(name = "week_day")
     private List<DayOfWeek> daysOfWeek = new ArrayList<>();
 
     @Column(name = "start_time", nullable = false)
@@ -33,17 +32,34 @@ public class ScheduleClassTeacher {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_class_id", nullable = true)
     private ScheduleClass scheduleClass;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ScheduleClassTeacher that = (ScheduleClassTeacher) o;
+        return Objects.equals(teacherSchedulingId, that.teacherSchedulingId) &&
+                Objects.equals(daysOfWeek, that.daysOfWeek) &&
+                Objects.equals(startTime, that.startTime) &&
+                Objects.equals(endTime, that.endTime) &&
+                Objects.equals(lesson, that.lesson) &&
+                Objects.equals(scheduleClass, that.scheduleClass) &&
+                Objects.equals(teacher, that.teacher);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(teacherSchedulingId, daysOfWeek, startTime, endTime, lesson, scheduleClass, teacher);
+    }
 }

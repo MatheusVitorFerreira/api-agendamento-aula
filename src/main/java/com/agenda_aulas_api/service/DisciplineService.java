@@ -1,6 +1,5 @@
 package com.agenda_aulas_api.service;
 
-
 import com.agenda_aulas_api.domain.Discipline;
 import com.agenda_aulas_api.dto.DisciplineDTO;
 import com.agenda_aulas_api.exception.erros.*;
@@ -39,14 +38,18 @@ public class DisciplineService {
     public DisciplineDTO findById(UUID id) {
         try {
             Discipline discipline = disciplineRepository.findById(id)
-                    .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + id));
+                    .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: " + id));
             return DisciplineDTO.fromDiscipline(discipline);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
 
-    public Page<DisciplineDTO> findPageDiscipline(Integer page, Integer linesPerPage, String orderBy, String direction) {
+    public Page<DisciplineDTO> findPageDiscipline(
+            Integer page,
+            Integer linesPerPage,
+            String orderBy,
+            String direction) {
         try {
             PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
             return disciplineRepository.findAll(pageRequest).map(DisciplineDTO::fromDiscipline);
@@ -56,17 +59,17 @@ public class DisciplineService {
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
+
     @Transactional
     public DisciplineDTO createDiscipline(DisciplineDTO obj) {
         try {
             Discipline discipline = obj.toDiscipline();
-            boolean exists = disciplineRepository.existsByName(
-                    discipline.getName());
+            boolean exists = disciplineRepository.existsByName(discipline.getName());
             if (exists) {
-                throw new DuplicateEntityException("Discipline with the same attributes already exists.");
+                throw new DuplicateEntityException("Discipline with the same name already exists.");
             }
-            Discipline saveDiciDiscipline = disciplineRepository.save(discipline);
-            return DisciplineDTO.fromDiscipline(saveDiciDiscipline);
+            Discipline savedDiscipline = disciplineRepository.save(discipline);
+            return DisciplineDTO.fromDiscipline(savedDiscipline);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to save discipline to the database: " + e.getMessage());
         }
@@ -76,18 +79,19 @@ public class DisciplineService {
     public DisciplineDTO updateDiscipline(DisciplineDTO objDto, UUID idDiscipline) {
         try {
             Discipline existingDiscipline = disciplineRepository.findById(idDiscipline)
-                    .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + idDiscipline));
+                    .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: " + idDiscipline));
             existingDiscipline.setName(objDto.getName());
-            Discipline updateDiscipline = disciplineRepository.save(existingDiscipline);
-            return DisciplineDTO.fromDiscipline(updateDiscipline);
+            Discipline updatedDiscipline = disciplineRepository.save(existingDiscipline);
+            return DisciplineDTO.fromDiscipline(updatedDiscipline);
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to update discipline in the database: " + e.getMessage());
         }
     }
 
-    public void deleteAddress(UUID idAddress) {
-        Discipline existingDiscipline= disciplineRepository.findById(idAddress)
-                .orElseThrow(() -> new AddressNotFoundException("Discipline not found with id: " + idAddress));
-        disciplineRepository.deleteById(idAddress);
+    @Transactional
+    public void deleteDiscipline(UUID idDiscipline) {
+        Discipline existingDiscipline = disciplineRepository.findById(idDiscipline)
+                .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: " + idDiscipline));
+        disciplineRepository.deleteById(idDiscipline);
     }
 }

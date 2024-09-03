@@ -41,7 +41,8 @@ public class DisciplineController {
             @RequestParam(value = "orderBy", defaultValue = "id") String orderBy,
             @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
 
-        Page<DisciplineDTO> disciplineDTOPage = disciplineService.findPageDiscipline(page, linesPerPage, orderBy, direction);
+        Page<DisciplineDTO> disciplineDTOPage = disciplineService.findPageDiscipline(
+                page, linesPerPage, orderBy, direction);
         return ResponseEntity.ok(disciplineDTOPage);
     }
 
@@ -64,7 +65,7 @@ public class DisciplineController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Object> deleteDiscipline(@PathVariable UUID id) {
-        disciplineService.deleteAddress(id);
+        disciplineService.deleteDiscipline(id);
         return ResponseEntity.noContent().build();
     }
 }

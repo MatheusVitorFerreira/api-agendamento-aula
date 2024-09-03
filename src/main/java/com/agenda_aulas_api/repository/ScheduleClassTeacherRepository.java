@@ -17,22 +17,7 @@ import java.util.UUID;
 @Repository
 public interface ScheduleClassTeacherRepository extends JpaRepository<ScheduleClassTeacher, UUID> {
 
-    @Query("SELECT t FROM ScheduleClassTeacher t WHERE t.lesson.id = :lessonId")
-    List<ScheduleClassTeacher> findByLessonId(@Param("lessonId") UUID lessonId);
-
     @Modifying
-    @Transactional
-    @Query("DELETE FROM ScheduleClassTeacher sct WHERE sct.scheduleClass.idClassSchedule = :idScheduleClass")
+    @Query("DELETE FROM ScheduleClassTeacher sct WHERE sct.scheduleClass.id = :idScheduleClass")
     void deleteByScheduleClassId(@Param("idScheduleClass") UUID idScheduleClass);
-
-    @Query("SELECT sct FROM ScheduleClassTeacher sct " +
-            "WHERE sct.teacher = :teacher " +
-            "AND :dayOfWeek MEMBER OF sct.daysOfWeek " +
-            "AND (sct.startTime < :endTime AND sct.endTime > :startTime)")
-    List<ScheduleClassTeacher> findByTeacherAndDayOfWeekAndTimeRange(
-            @Param("teacher") Teacher teacher,
-            @Param("dayOfWeek") DayOfWeek dayOfWeek,
-            @Param("startTime") LocalTime startTime,
-            @Param("endTime") LocalTime endTime
-    );
 }

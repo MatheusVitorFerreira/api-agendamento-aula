@@ -1,5 +1,7 @@
 package com.agenda_aulas_api.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +26,7 @@ public class Lesson implements Serializable {
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "teacher_id", nullable = false)
+    @JsonIgnore
     private Teacher teacher;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -37,18 +40,21 @@ public class Lesson implements Serializable {
 
     private String location;
 
+    @Enumerated(EnumType.STRING)
     private ClassShift classShift;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "schedule_class_id")
+    @JsonBackReference
     private ScheduleClass scheduleClass;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "lesson_students",
             joinColumns = @JoinColumn(name = "lesson_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
+    @JsonIgnore
     private List<Student> students = new ArrayList<>();
 
     @Override
@@ -69,6 +75,13 @@ public class Lesson implements Serializable {
             this.students = new ArrayList<>();
         }
         this.students.add(student);
+        student.getLessons().add(this);
     }
 
+    public void removeStudent(Student student) {
+        if (this.students != null) {
+            this.students.remove(student);
+            student.getLessons().remove(this);
+        }
+    }
 }

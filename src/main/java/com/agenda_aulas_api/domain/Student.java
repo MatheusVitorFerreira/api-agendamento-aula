@@ -1,5 +1,6 @@
 package com.agenda_aulas_api.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class Student extends Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "idStudent", updatable = false, unique = true, nullable = false)
+    @Column(name = "id_student", updatable = false, unique = true, nullable = false)
     private UUID idStudent;
 
     private LocalDate enrollmentDate;
@@ -25,8 +26,12 @@ public class Student extends Person implements Serializable {
     @Transient
     private String progress;
 
-    @ManyToMany(mappedBy = "students")
+    @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Lesson> lessons = new ArrayList<>();
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Enrollment> enrollments = new HashSet<>();
 
     @Override
     public int hashCode() {

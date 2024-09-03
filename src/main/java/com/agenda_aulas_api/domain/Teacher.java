@@ -1,5 +1,6 @@
 package com.agenda_aulas_api.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,11 +29,12 @@ public class Teacher extends Person implements Serializable {
             joinColumns = @JoinColumn(name = "teacher_id"),
             inverseJoinColumns = @JoinColumn(name = "discipline_id")
     )
+    @JsonManagedReference
     private List<Discipline> disciplines = new ArrayList<>();
 
-    private int limitCoursesByWeek;
 
     @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Lesson> lessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "teacher")

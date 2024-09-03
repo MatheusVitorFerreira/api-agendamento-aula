@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -29,4 +30,14 @@ public class Enrollment implements Serializable {
 
     @Enumerated(EnumType.STRING)
     private StatusClass status;
+
+    @Column(name = "enrollment_date", nullable = false)
+    private LocalDateTime enrollmentDate;
+
+    public Enrollment(Student student, ScheduleClass scheduleClass, StatusClass status) {
+        this.student = student;
+        this.scheduleClass = scheduleClass;
+        this.status = status;
+        this.enrollmentDate = LocalDateTime.now();
+    }
 }

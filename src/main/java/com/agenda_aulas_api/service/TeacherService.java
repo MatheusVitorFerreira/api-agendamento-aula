@@ -116,7 +116,7 @@ public class TeacherService {
 
             if (dto.getAddress() != null) {
                 Address address = dto.getAddress().toAddress();
-                address = addressRepository.save(address); // Persistindo o Address diretamente
+                address = addressRepository.save(address);
                 teacher.setAddress(address);
             }
 
@@ -147,7 +147,6 @@ public class TeacherService {
             existingTeacher.setEmail(obj.getEmail());
             existingTeacher.setCpf(obj.getCpf());
             existingTeacher.setTelephone(obj.getTelephone());
-            existingTeacher.setLimitCoursesByWeek(obj.getLimitCoursesByWeek());
             existingTeacher.setJob(obj.getJob());
 
             if (obj.getAddress() != null) {

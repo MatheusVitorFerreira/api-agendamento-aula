@@ -22,8 +22,6 @@ public class LessonService {
     private final LessonRepository lessonRepository;
     private final TeacherRepository teacherRepository;
     private final DisciplineRepository disciplineRepository;
-    private final StudentRepository studentRepository;
-    private final TimeTableRepository timeTableRepository;
 
     public List<Map<String, Object>> findAll() {
         try {
@@ -33,24 +31,6 @@ public class LessonService {
                         filteredMap.put("idLesson", lesson.getIdLesson());
                         filteredMap.put("scheduleClassId", lesson.getScheduleClass() != null
                                 ? lesson.getScheduleClass().getIdClassSchedule() : "Não Agendada");
-                        filteredMap.put("availableSlots", lesson.getAvailableSlots());
-                        return filteredMap;
-                    })
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
-        }
-    }
-
-    public List<Map<String, Object>> findLessonsWithoutAvailableSlots() {
-        try {
-            return lessonRepository.findAll().stream()
-                    .filter(lesson -> lesson.getAvailableSlots() == 0)
-                    .filter(lesson -> lesson.getScheduleClass() == null)
-                    .map(lesson -> {
-                        Map<String, Object> filteredMap = new HashMap<>();
-                        filteredMap.put("idLesson", lesson.getIdLesson());
-                        filteredMap.put("scheduleClassId", "Não Agendada");
                         filteredMap.put("availableSlots", lesson.getAvailableSlots());
                         return filteredMap;
                     })
@@ -70,7 +50,11 @@ public class LessonService {
         }
     }
 
-    public Page<LessonRequestRecordDTO> findPageLesson(Integer page, Integer linesPerPage, String orderBy, String direction) {
+    public Page<LessonRequestRecordDTO> findPageLesson(
+            Integer page,
+            Integer linesPerPage,
+            String orderBy,
+            String direction) {
         try {
             PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
             return lessonRepository.findAll(pageRequest).map(LessonRequestRecordDTO::fromLesson);
@@ -85,23 +69,30 @@ public class LessonService {
     public LessonRequestRecordDTO createLesson(LessonRequestRecordDTO lessonRequestRecordDTO) {
         try {
             Lesson lesson = lessonRequestRecordDTO.toLesson();
+
             Teacher teacher = teacherRepository.findById(lessonRequestRecordDTO.teacherId())
                     .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: "
                             + lessonRequestRecordDTO.teacherId()));
-            lesson.setTeacher(teacher);
 
             Discipline discipline = disciplineRepository.findById(lessonRequestRecordDTO.disciplineId())
                     .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
                             + lessonRequestRecordDTO.disciplineId()));
+
+            if (!teacher.getDisciplines().contains(discipline)) {
+                throw new InvalidTeachingAssignmentException("The teacher cannot teach the specified discipline.");
+            }
+            lesson.setTeacher(teacher);
             lesson.setDiscipline(discipline);
 
             Lesson savedLesson = lessonRepository.save(lesson);
+
             return LessonRequestRecordDTO.fromLesson(savedLesson);
 
         } catch (Exception e) {
             throw new DatabaseNegatedAccessException("Failed to create Lesson: " + e.getMessage());
         }
     }
+
 
     @Transactional
     public LessonDTO updateLesson(LessonDTO lessonDTO, UUID idLesson) {

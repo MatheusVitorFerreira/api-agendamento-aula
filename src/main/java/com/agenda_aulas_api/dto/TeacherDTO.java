@@ -22,7 +22,6 @@ public class TeacherDTO {
     private String fullName;
     private String job;
     private List<UUID> disciplineIds = new ArrayList<>();
-    private int limitCoursesByWeek;
     private LocalDate birthDateTime;
     private int age;
     private String email;
@@ -35,7 +34,6 @@ public class TeacherDTO {
         teacher.setIdTeacher(this.idTeacher);
         teacher.setFullName(this.fullName);
         teacher.setJob(this.job);
-        teacher.setLimitCoursesByWeek(this.limitCoursesByWeek);
         teacher.setBirthDateTime(this.birthDateTime);
         teacher.setAge(this.age);
         teacher.setEmail(this.email);
@@ -55,7 +53,6 @@ public class TeacherDTO {
                 teacher.getFullName(),
                 teacher.getJob(),
                 teacher.getDisciplines().stream().map(d -> d.getIdDiscipline()).toList(),
-                teacher.getLimitCoursesByWeek(),
                 teacher.getBirthDateTime(),
                 teacher.getAge(),
                 teacher.getEmail(),

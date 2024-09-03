@@ -4,6 +4,7 @@ import com.agenda_aulas_api.domain.Lesson;
 import com.agenda_aulas_api.domain.ScheduleClass;
 import com.agenda_aulas_api.domain.StatusClass;
 import com.agenda_aulas_api.domain.Student;
+import com.agenda_aulas_api.domain.ClassShift;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,14 @@ public class LessonDTO {
     private StatusClass status;
     private String location;
     private List<UUID> students;
-    private UUID scheduleClassId;
+    private UUID idClassSchedule;
+    private ClassShift classShift;
 
     public static LessonDTO fromLesson(Lesson lesson) {
+        if (lesson == null) {
+            throw new IllegalArgumentException("Lesson cannot be null");
+        }
+
         return new LessonDTO(
                 lesson.getIdLesson(),
                 lesson.getTeacher() != null ? lesson.getTeacher().getIdTeacher() : null,
@@ -34,8 +40,13 @@ public class LessonDTO {
                 lesson.getAvailableSlots(),
                 lesson.getStatus(),
                 lesson.getLocation(),
-                lesson.getStudents() != null ? lesson.getStudents().stream().map(Student::getIdStudent).collect(Collectors.toList()) : List.of(),
-                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null
+                lesson.getStudents() != null
+                        ? lesson.getStudents().stream()
+                        .map(Student::getIdStudent)
+                        .collect(Collectors.toList())
+                        : List.of(),
+                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
+                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getClassShift() : null
         );
     }
 
@@ -46,9 +57,10 @@ public class LessonDTO {
         lesson.setStatus(this.status);
         lesson.setLocation(this.location);
 
-        if (this.scheduleClassId != null) {
+        if (this.idClassSchedule != null) {
             ScheduleClass scheduleClass = new ScheduleClass();
-            scheduleClass.setIdClassSchedule(this.scheduleClassId);
+            scheduleClass.setIdClassSchedule(this.idClassSchedule);
+            scheduleClass.setClassShift(this.classShift);
             lesson.setScheduleClass(scheduleClass);
         }
 

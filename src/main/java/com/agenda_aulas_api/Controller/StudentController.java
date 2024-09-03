@@ -38,7 +38,8 @@ public class StudentController {
             @RequestParam(value = "orderBy", defaultValue = "idStudent") String orderBy,
             @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
 
-        Page<Map<String, Object>> studentDTOS = studentService.findPageStudentDTO(page, linesPerPage, orderBy, direction);
+        Page<Map<String, Object>> studentDTOS = studentService.findPageStudentDTO(
+                page, linesPerPage, orderBy, direction);
         return ResponseEntity.ok(studentDTOS);
     }
 

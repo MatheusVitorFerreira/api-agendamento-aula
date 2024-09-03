@@ -5,6 +5,7 @@ import com.agenda_aulas_api.dto.record.LessonRequestRecordDTO;
 import com.agenda_aulas_api.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -33,8 +34,20 @@ public class LessonController {
         return ResponseEntity.ok(lessonDTO);
     }
 
+    @GetMapping(value = "/page")
+    public ResponseEntity<Page<LessonRequestRecordDTO>> findPageEnrollment(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "linesPerPage", defaultValue = "24") Integer linesPerPage,
+            @RequestParam(value = "orderBy", defaultValue = "id") String orderBy,
+            @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
+        Page<LessonRequestRecordDTO> lessonDTOSessonDTOPage =
+                lessonService.findPageLesson(page, linesPerPage, orderBy, direction);
+        return ResponseEntity.ok(lessonDTOSessonDTOPage);
+    }
+
     @PostMapping
-    public ResponseEntity<LessonRequestRecordDTO> createLesson(@Valid @RequestBody LessonRequestRecordDTO lessonRequestRecordDTO) {
+    public ResponseEntity<LessonRequestRecordDTO> createLesson(
+            @Valid @RequestBody LessonRequestRecordDTO lessonRequestRecordDTO) {
         LessonRequestRecordDTO createdLesson = lessonService.createLesson(lessonRequestRecordDTO);
         URI headerLocation = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -54,11 +67,5 @@ public class LessonController {
     public ResponseEntity<Void> deleteLesson(@PathVariable UUID id) {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/no-available-slots")
-    public ResponseEntity<List<Map<String, Object>>> getLessonsWithoutAvailableSlots() {
-        List<Map<String, Object>> lessonsWithoutAvailableSlots = lessonService.findLessonsWithoutAvailableSlots();
-        return ResponseEntity.ok(lessonsWithoutAvailableSlots);
     }
 }

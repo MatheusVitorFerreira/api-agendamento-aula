@@ -1,5 +1,6 @@
 package com.agenda_aulas_api.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,5 +25,6 @@ public class Discipline implements Serializable {
     private String name;
 
     @ManyToMany(mappedBy = "disciplines")
+    @JsonBackReference
     private List<Teacher> teachers = new ArrayList<>();
 }
