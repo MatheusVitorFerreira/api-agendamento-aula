@@ -6,7 +6,7 @@ Este projeto é um sistema de agendamento de aulas que permite que professores e
 
 ## Diagrama UML
 
-![diagrama](https://github.com/user-attachments/assets/3ac6c8d4-8d37-4c62-824e-29c7aaf08696)
+![diagrama](https://github.com/MatheusVitorFerreira/ChatLive/blob/main/Documente%20seus%20sistemas%20(6).png)
 
 
 ## Funcionalidades
