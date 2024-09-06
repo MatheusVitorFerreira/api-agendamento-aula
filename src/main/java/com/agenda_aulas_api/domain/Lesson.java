@@ -74,8 +74,10 @@ public class Lesson implements Serializable {
         if (this.students == null) {
             this.students = new ArrayList<>();
         }
-        this.students.add(student);
-        student.getLessons().add(this);
+        if (!this.students.contains(student)) {
+            this.students.add(student);
+            student.getLessons().add(this);
+        }
     }
 
     public void removeStudent(Student student) {

@@ -35,14 +35,14 @@ public class LessonDTO {
 
         return new LessonDTO(
                 lesson.getIdLesson(),
-                lesson.getTeacher() != null ? lesson.getTeacher().getIdTeacher() : null,
+                lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
                 lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
                 lesson.getAvailableSlots(),
                 lesson.getStatus(),
                 lesson.getLocation(),
                 lesson.getStudents() != null
                         ? lesson.getStudents().stream()
-                        .map(Student::getIdStudent)
+                        .map(Student::getStudentId)
                         .collect(Collectors.toList())
                         : List.of(),
                 lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,

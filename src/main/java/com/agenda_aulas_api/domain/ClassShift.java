@@ -14,11 +14,11 @@ public enum ClassShift {
     private final int cod;
     private final String description;
 
-    public static StatusClass toEnum(Integer cod) {
+    public static ClassShift toEnum(Integer cod) {
         if (cod == null) {
             return null;
         }
-        for (StatusClass x : StatusClass.values()) {
+        for (ClassShift x : ClassShift.values()) {
             if (cod.equals(x.getCod())) {
                 return x;
             }

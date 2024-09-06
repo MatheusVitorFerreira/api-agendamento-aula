@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface AddressRepository extends JpaRepository<Address, UUID> {
 
     boolean existsByStreetAndNumberAndCityAndStateAndZipCodeAndCountry(
-            String street, String number, String city, String state, String zipCode, String country);
+            String street, Integer number, String city, String state, String zipCode, String country);
 }

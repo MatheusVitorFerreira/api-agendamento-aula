@@ -51,8 +51,8 @@ public class TeacherService {
                         Map<String, Object> filteredMap = new HashMap<>();
                         filteredMap.put("cpf", teacher.getCpf());
                         filteredMap.put("fullName", teacher.getFullName());
-                        filteredMap.put("birthDateTime", teacher.getBirthDateTime());
-                        filteredMap.put("idTeacher", teacher.getIdTeacher());
+                        filteredMap.put("birthDateTime", teacher.getBirthDate());
+                        filteredMap.put("idTeacher", teacher.getTeacherId());
                         filteredMap.put("addressId", teacher.getAddress() != null ? teacher.getAddress().getId() : null);
                         return filteredMap;
                     })
@@ -142,12 +142,11 @@ public class TeacherService {
             Teacher existingTeacher = teacherRepository.findById(idTeacher).orElseThrow(() ->
                     new TeacherNotFoundException("Teacher not found with id: " + idTeacher));
             existingTeacher.setFullName(obj.getFullName());
-            existingTeacher.setBirthDateTime(obj.getBirthDateTime());
+            existingTeacher.setBirthDate(obj.getBirthDateTime());
             existingTeacher.setAge(obj.getAge());
             existingTeacher.setEmail(obj.getEmail());
             existingTeacher.setCpf(obj.getCpf());
             existingTeacher.setTelephone(obj.getTelephone());
-            existingTeacher.setJob(obj.getJob());
 
             if (obj.getAddress() != null) {
                 existingTeacher.setAddress(obj.getAddress().toAddress());

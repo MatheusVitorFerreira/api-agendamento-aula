@@ -74,14 +74,14 @@ public class ScheduleClassService {
                 Lesson lesson = scheduleClass.getLesson();
                 lessonDTO = new LessonDTO(
                         lesson.getIdLesson(),
-                        lesson.getTeacher() != null ? lesson.getTeacher().getIdTeacher() : null,
+                        lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
                         lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
                         lesson.getAvailableSlots(),
                         lesson.getStatus(),
                         lesson.getLocation(),
                         lesson.getStudents() != null ?
                                 lesson.getStudents().stream()
-                                        .map(Student::getIdStudent)
+                                        .map(Student::getStudentId)
                                         .collect(Collectors.toList()) : List.of(),
                         lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
                         lesson.getClassShift()
@@ -118,7 +118,7 @@ public class ScheduleClassService {
                     ));
             lesson.setStatus(StatusClass.CONFIRMED);
             List<UUID> studentIds = lesson.getStudents().stream()
-                    .map(Student::getIdStudent)
+                    .map(Student::getStudentId)
                     .toList();
             Set<UUID> uniqueStudentIds = new HashSet<>(studentIds);
             if (uniqueStudentIds.size() < studentIds.size()) {
@@ -225,7 +225,6 @@ public class ScheduleClassService {
         }
     }
 
-
     public List<ScheduleRequestRecord> getAvailableClassesForEnrollment() {
         try {
             List<ScheduleClass> allClasses = scheduleClassRepository.findAll();
@@ -264,7 +263,7 @@ public class ScheduleClassService {
         List<ScheduleClassStudent> existingScheduleClassStudents = scheduleClass.getScheduleClassStudents();
         Set<DayOfWeek> registeredDays = new HashSet<>();
         for (ScheduleClassStudent scs : existingScheduleClassStudents) {
-            if (scs.getStudent().getIdStudent().equals(studentId)) {
+            if (scs.getStudent().getStudentId().equals(studentId)) {
                 registeredDays.add(scs.getDayOfWeek());
             }
         }
@@ -299,5 +298,47 @@ public class ScheduleClassService {
                 .orElse(new Enrollment(student, scheduleClass, StatusClass.CONFIRMED));
         enrollment.setStatus(StatusClass.CONFIRMED);
         enrollmentService.saveEnrollment(enrollment);
+    }
+    @Transactional
+    public void removeStudentFromScheduleClass(UUID scheduleClassId, UUID studentId) {
+        ScheduleClass scheduleClass = scheduleClassRepository.findById(scheduleClassId)
+                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException(
+                        "Classe de agendamento não encontrada"));
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new StudentNotFoundException("Aluno não encontrado"));
+
+        Lesson lesson = scheduleClass.getLesson();
+        if (lesson == null) {
+            throw new LessonNotFoundException("Lição não encontrada para a classe de agendamento.");
+        }
+
+        List<ScheduleClassStudent> scheduleClassStudents = scheduleClass.getScheduleClassStudents();
+        ScheduleClassStudent toRemove = null;
+
+        for (ScheduleClassStudent scs : scheduleClassStudents) {
+            if (scs.getStudent().getStudentId().equals(studentId)) {
+                toRemove = scs;
+                break;
+            }
+        }
+
+        if (toRemove != null) {
+            scheduleClassStudentRepository.delete(toRemove);
+            scheduleClass.getScheduleClassStudents().remove(toRemove);
+
+            lesson.setAvailableSlots(lesson.getAvailableSlots() + 1);
+            lessonRepository.save(lesson);
+
+            lesson.removeStudent(student);
+            lessonRepository.save(lesson);
+
+            Enrollment enrollment = enrollmentRepository.findByStudentAndScheduleClass(student, scheduleClass)
+                    .orElseThrow(() -> new EnrollmentNotFoundException("Matrícula não encontrada"));
+            enrollmentRepository.delete(enrollment);
+        } else {
+            throw new ScheduleClassRepositoryNotFoundException(
+                    "Associação de aluno não encontrada para a classe de agendamento.");
+        }
     }
 }

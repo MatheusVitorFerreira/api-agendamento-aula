@@ -15,7 +15,7 @@ public class StudentDTO {
 
     private UUID idStudent;
     private String fullName;
-    private LocalDate birthDateTime;
+    private LocalDate birthDate;
     private int age;
     private String email;
     private String cpf;
@@ -25,13 +25,13 @@ public class StudentDTO {
 
     public Student toStudent() {
         Student student = new Student();
-        student.setIdStudent(this.idStudent);
+        student.setStudentId(this.idStudent);
         student.setFullName(this.fullName);
         student.setAge(this.age);
         student.setEmail(this.email);
         student.setTelephone(this.telephone);
         student.setEnrollmentDate(this.enrollmentDate);
-        student.setBirthDateTime(this.birthDateTime);
+        student.setBirthDate(this.birthDate);
         student.setCpf(this.cpf);
         if (this.address != null) {
             student.setAddress(this.address.toAddress());
@@ -45,9 +45,9 @@ public class StudentDTO {
             addressDTO = AddressDTO.fromAddress(student.getAddress());
         }
         return new StudentDTO(
-                student.getIdStudent(),
+                student.getStudentId(),
                 student.getFullName(),
-                student.getBirthDateTime(),
+                student.getBirthDate(),
                 student.getAge(),
                 student.getEmail(),
                 student.getCpf(),

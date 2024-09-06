@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,9 +20,11 @@ public class Discipline implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "idDiscipline", updatable = false, unique = true, nullable = false)
+    @Column(name = "id_discipline", updatable = false, unique = true, nullable = false)
     private UUID idDiscipline;
 
+    @NonNull
+    @Column(nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "disciplines")

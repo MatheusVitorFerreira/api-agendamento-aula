@@ -69,6 +69,18 @@ public class ScheduleClassController {
         return ResponseEntity.ok(updatedScheduleClass);
     }
 
+    @DeleteMapping("/{scheduleClassId}/students/{studentId}")
+    public ResponseEntity<String> removeStudentFromScheduleClass(
+            @PathVariable UUID scheduleClassId,
+            @PathVariable UUID studentId) {
+        try {
+            scheduleClassService.removeStudentFromScheduleClass(scheduleClassId, studentId);
+            return ResponseEntity.ok("Aluno removido com sucesso da classe de agendamento.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao remover aluno: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteScheduleClass(@PathVariable UUID id) {
         scheduleClassService.deleteScheduleClass(id);
@@ -81,6 +93,5 @@ public class ScheduleClassController {
             @RequestBody @Valid LessonRecord lessonRecord) {
             scheduleClassService.addStudentToScheduleClass(scheduleClassId, lessonRecord.studentId());
             return ResponseEntity.status(HttpStatus.OK).body("Aluno adicionado com sucesso.");
-
     }
 }

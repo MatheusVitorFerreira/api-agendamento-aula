@@ -1,10 +1,8 @@
 package com.agenda_aulas_api.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.Min;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -21,12 +19,26 @@ public class Address implements Serializable {
     @Column(name = "id", updatable = false, unique = true, nullable = false)
     private UUID id;
 
+    @NonNull
+    @Column(nullable = false)
     private String street;
-    private String number;
 
+    @Min(1)
+    private int number;
+
+    @NonNull
+    @Column(nullable = false)
     private String city;
-    private String state;
-    private String zipCode;
-    private String country;
 
+    @NonNull
+    @Column(nullable = false)
+    private String state;
+
+    @NonNull
+    @Column(nullable = false)
+    private String zipCode;
+
+    @NonNull
+    @Column(nullable = false)
+    private String country;
 }

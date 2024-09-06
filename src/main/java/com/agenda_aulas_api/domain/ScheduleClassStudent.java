@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -14,14 +15,15 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScheduleClassStudent {
+public class ScheduleClassStudent implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @Column(name = "student_scheduling_id", updatable = false, unique = true, nullable = false)
+    private UUID studentSchedulingId;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "schedule_class_id")
+    @ManyToOne
+    @JoinColumn(name = "schedule_class_id", nullable = false)
     private ScheduleClass scheduleClass;
 
     @ManyToOne
@@ -38,22 +40,16 @@ public class ScheduleClassStudent {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(studentSchedulingId);
+    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ScheduleClassStudent that = (ScheduleClassStudent) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(scheduleClass, that.scheduleClass) &&
-                Objects.equals(student, that.student) &&
-                dayOfWeek == that.dayOfWeek &&
-                Objects.equals(startTime, that.startTime) &&
-                Objects.equals(endTime, that.endTime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, scheduleClass, student, dayOfWeek, startTime, endTime);
+        return Objects.equals(studentSchedulingId, that.studentSchedulingId);
     }
 }

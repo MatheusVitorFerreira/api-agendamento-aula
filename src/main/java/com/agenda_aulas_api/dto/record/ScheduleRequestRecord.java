@@ -25,13 +25,13 @@ public record ScheduleRequestRecord(
             Lesson lesson = scheduleClass.getLesson();
             lessonDTO = new LessonDTO(
                     lesson.getIdLesson(),
-                    lesson.getTeacher() != null ? lesson.getTeacher().getIdTeacher() : null,
+                    lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
                     lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
                     lesson.getAvailableSlots(),
                     lesson.getStatus(),
                     lesson.getLocation(),
                     lesson.getStudents() != null ?
-                            lesson.getStudents().stream().map(Student::getIdStudent).collect(Collectors.toList()) :
+                            lesson.getStudents().stream().map(Student::getStudentId).collect(Collectors.toList()) :
                             null,
                     lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
                     lesson.getClassShift()

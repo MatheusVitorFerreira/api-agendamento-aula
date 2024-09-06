@@ -43,9 +43,9 @@ public class StudentService {
                     .map(student -> {
                         Map map = objectMapper.convertValue(student, Map.class);
                         Map<String, Object> filteredMap = new HashMap<>();
-                        filteredMap.put("idStudent", map.get("idStudent"));
+                        filteredMap.put("studentId", map.get("studentId"));
                         filteredMap.put("fullName", map.get("fullName"));
-                        filteredMap.put("birthDateTime", map.get("birthDateTime"));
+                        filteredMap.put("birthDate", map.get("birthDate"));
                         filteredMap.put("cpf", map.get("cpf"));
                         filteredMap.put("addressId",
                                 map.get("address") != null ? ((Map<String, Object>) map.get("address"))
@@ -132,7 +132,7 @@ public class StudentService {
                     .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + idStudent));
 
             existingStudent.setFullName(obj.getFullName());
-            existingStudent.setBirthDateTime(obj.getBirthDateTime());
+            existingStudent.setBirthDate(obj.getBirthDate());
             existingStudent.setAge(obj.getAge());
             existingStudent.setEmail(obj.getEmail());
             existingStudent.setCpf(obj.getCpf());

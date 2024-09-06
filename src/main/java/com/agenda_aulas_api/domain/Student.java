@@ -18,13 +18,10 @@ public class Student extends Person implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_student", updatable = false, unique = true, nullable = false)
-    private UUID idStudent;
+    @Column(name = "student_id", updatable = false, unique = true, nullable = false)
+    private UUID studentId;
 
     private LocalDate enrollmentDate;
-
-    @Transient
-    private String progress;
 
     @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Lesson> lessons = new ArrayList<>();
@@ -35,7 +32,7 @@ public class Student extends Person implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(idStudent);
+        return Objects.hash(studentId);
     }
 
     @Override
@@ -43,6 +40,6 @@ public class Student extends Person implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Student student = (Student) o;
-        return Objects.equals(idStudent, student.idStudent);
+        return Objects.equals(studentId, student.studentId);
     }
 }

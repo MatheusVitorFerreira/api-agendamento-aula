@@ -1,7 +1,6 @@
 package com.agenda_aulas_api.domain;
 
 import com.agenda_aulas_api.exception.erros.NegativeAgeException;
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,7 @@ public abstract class Person implements Serializable {
     private int age;
 
     @Column(name = "birth_date")
-    private LocalDate birthDateTime;
+    private LocalDate birthDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
@@ -45,10 +44,10 @@ public abstract class Person implements Serializable {
         this.age = age;
     }
 
-    public void setPositiveDateOfBirth(LocalDate birthDateTime) {
-        if (birthDateTime == null || birthDateTime.isAfter(LocalDate.now())) {
+    public void setBirthDate(LocalDate birthDate) {
+        if (birthDate == null || birthDate.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Invalid date of birth.");
         }
-        this.birthDateTime = birthDateTime;
+        this.birthDate = birthDate;
     }
 }

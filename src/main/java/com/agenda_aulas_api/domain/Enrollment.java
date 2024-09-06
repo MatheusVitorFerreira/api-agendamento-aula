@@ -17,18 +17,19 @@ public class Enrollment implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "idEnrollment", updatable = false, unique = true, nullable = false)
+    @Column(name = "id_enrollment", updatable = false, unique = true, nullable = false)
     private UUID idEnrollment;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
     @ManyToOne
-    @JoinColumn(name = "schedule_class_id")
+    @JoinColumn(name = "schedule_class_id", nullable = false)
     private ScheduleClass scheduleClass;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private StatusClass status;
 
     @Column(name = "enrollment_date", nullable = false)

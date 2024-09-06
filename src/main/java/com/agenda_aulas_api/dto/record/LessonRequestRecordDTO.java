@@ -28,13 +28,13 @@ public record LessonRequestRecordDTO(@NonNull UUID teacherId, @NonNull UUID disc
 
     public static LessonRequestRecordDTO fromLesson(Lesson lesson) {
         return LessonRequestRecordDTO.builder()
-                .teacherId(lesson.getTeacher().getIdTeacher())
+                .teacherId(lesson.getTeacher().getTeacherId())
                 .disciplineId(lesson.getDiscipline().getIdDiscipline())
                 .availableSlots(lesson.getAvailableSlots())
                 .classShift(lesson.getClassShift())
                 .status(lesson.getStatus())
                 .students(lesson.getStudents().stream()
-                        .map(Student::getIdStudent)
+                        .map(Student::getStudentId)
                         .toList())
                 .location(lesson.getLocation())
                 .build();

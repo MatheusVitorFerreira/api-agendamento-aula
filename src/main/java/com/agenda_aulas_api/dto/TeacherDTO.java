@@ -20,7 +20,6 @@ public class TeacherDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID idTeacher;
     private String fullName;
-    private String job;
     private List<UUID> disciplineIds = new ArrayList<>();
     private LocalDate birthDateTime;
     private int age;
@@ -31,10 +30,9 @@ public class TeacherDTO {
 
     public Teacher toTeacher() {
         Teacher teacher = new Teacher();
-        teacher.setIdTeacher(this.idTeacher);
+        teacher.setTeacherId(this.idTeacher);
         teacher.setFullName(this.fullName);
-        teacher.setJob(this.job);
-        teacher.setBirthDateTime(this.birthDateTime);
+        teacher.setBirthDate(this.birthDateTime);
         teacher.setAge(this.age);
         teacher.setEmail(this.email);
         teacher.setCpf(this.cpf);
@@ -49,11 +47,10 @@ public class TeacherDTO {
 
     public static TeacherDTO fromTeacher(Teacher teacher) {
         return new TeacherDTO(
-                teacher.getIdTeacher(),
+                teacher.getTeacherId(),
                 teacher.getFullName(),
-                teacher.getJob(),
                 teacher.getDisciplines().stream().map(d -> d.getIdDiscipline()).toList(),
-                teacher.getBirthDateTime(),
+                teacher.getBirthDate(),
                 teacher.getAge(),
                 teacher.getEmail(),
                 teacher.getCpf(),
