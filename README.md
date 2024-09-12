@@ -28,7 +28,8 @@ O projeto é um sistema de Gerenciamento Acadêmico desenvolvido para otimizar a
 - *Verificação de Vagas Disponíveis:* Monitora e exibe a disponibilidade de vagas em disciplinas e aulas, permitindo que os alunos saibam quais opções estão abertas para inscrição.
 
 # Documentação e Interface de API
- Para facilitar o uso e a integração com outros sistemas, todo o sistema é documentado utilizando Swagger. A documentação interativa do Swagger oferece uma visão detalhada das APIs disponíveis, permitindo fácil consulta e compreensão das funcionalidades oferecidas pelo sistema
+ Para facilitar o uso e a integração com outros sistemas, todo o sistema é documentado utilizando Swagger. A documentação interativa do Swagger oferece uma visão detalhada das APIs disponíveis, permitindo fácil consulta e compreensão das funcionalidades oferecidas pelo sistema.
+ 
 Endpoint Swagger: /swagger-ui/index.html#/
 
 
