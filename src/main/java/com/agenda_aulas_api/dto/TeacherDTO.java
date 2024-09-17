@@ -18,7 +18,7 @@ import java.util.UUID;
 public class TeacherDTO {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private UUID idTeacher;
+    private UUID teacherId;
     private String fullName;
     private List<UUID> disciplineIds = new ArrayList<>();
     private LocalDate birthDateTime;
@@ -30,7 +30,7 @@ public class TeacherDTO {
 
     public Teacher toTeacher() {
         Teacher teacher = new Teacher();
-        teacher.setTeacherId(this.idTeacher);
+        teacher.setTeacherId(this.teacherId);
         teacher.setFullName(this.fullName);
         teacher.setBirthDate(this.birthDateTime);
         teacher.setAge(this.age);

@@ -1,7 +1,5 @@
 package com.agenda_aulas_api.Controller;
 
-import com.agenda_aulas_api.domain.ScheduleClass;
-import com.agenda_aulas_api.dto.LessonDTO;
 import com.agenda_aulas_api.dto.ScheduleClassDTO;
 import com.agenda_aulas_api.dto.record.LessonRecord;
 import com.agenda_aulas_api.dto.record.ScheduleRequestRecord;
@@ -11,10 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,12 +53,14 @@ public class ScheduleClassController {
 
 
     @PostMapping()
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ScheduleClassDTO> createScheduleClass(@RequestBody ScheduleClassDTO scheduleClassDTO) {
         ScheduleClassDTO createdScheduleClass = scheduleClassService.createScheduleClass(scheduleClassDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdScheduleClass);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ScheduleClassDTO> updateScheduleClass(
             @RequestBody ScheduleClassDTO scheduleClassDTO,
             @PathVariable UUID id) {
@@ -70,6 +69,7 @@ public class ScheduleClassController {
     }
 
     @DeleteMapping("/{scheduleClassId}/students/{studentId}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<String> removeStudentFromScheduleClass(
             @PathVariable UUID scheduleClassId,
             @PathVariable UUID studentId) {
@@ -82,12 +82,14 @@ public class ScheduleClassController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Void> deleteScheduleClass(@PathVariable UUID id) {
         scheduleClassService.deleteScheduleClass(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{scheduleClassId}/students")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<String> addStudentToScheduleClass(
             @PathVariable UUID scheduleClassId,
             @RequestBody @Valid LessonRecord lessonRecord) {

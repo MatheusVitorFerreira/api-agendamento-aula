@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -47,6 +48,7 @@ public class DisciplineController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<DisciplineDTO> createDiscipline(@Valid @RequestBody DisciplineDTO disciplineDTO) {
         DisciplineDTO savedDisciplineDTO = disciplineService.createDiscipline(disciplineDTO);
         URI headerLocation = ServletUriComponentsBuilder
@@ -58,12 +60,14 @@ public class DisciplineController {
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<DisciplineDTO> updateDiscipline(@RequestBody DisciplineDTO objDto, @PathVariable UUID id) {
         DisciplineDTO newObj = disciplineService.updateDiscipline(objDto, id);
         return ResponseEntity.ok().body(newObj);
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Object> deleteDiscipline(@PathVariable UUID id) {
         disciplineService.deleteDiscipline(id);
         return ResponseEntity.noContent().build();

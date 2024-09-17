@@ -22,8 +22,6 @@ public class Teacher extends Person implements Serializable {
     @Column(name = "teacher_id", updatable = false, unique = true, nullable = false)
     private UUID teacherId;
 
-
-
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "teacher_disciplines",

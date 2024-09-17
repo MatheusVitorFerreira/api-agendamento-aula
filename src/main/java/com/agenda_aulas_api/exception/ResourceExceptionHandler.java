@@ -19,6 +19,14 @@ public class ResourceExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(), e.getMessage(), System.currentTimeMillis());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
+    @ExceptionHandler(UserCreationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<StandardError> UserCreationException(
+            NegativeAgeException e, HttpServletRequest request) {
+        StandardError err = new StandardError(
+                HttpStatus.BAD_REQUEST.value(), e.getMessage(), System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(err);
+    }
 
     @ExceptionHandler(InvalidTeachingAssignmentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

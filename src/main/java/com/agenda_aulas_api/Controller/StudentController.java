@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class StudentController {
     public ResponseEntity<Page<Map<String, Object>>> findPageStudent(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "linesPerPage", defaultValue = "24") Integer linesPerPage,
-            @RequestParam(value = "orderBy", defaultValue = "idStudent") String orderBy,
+            @RequestParam(value = "orderBy", defaultValue = "studentId") String orderBy,
             @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
 
         Page<Map<String, Object>> studentDTOS = studentService.findPageStudentDTO(
@@ -43,19 +44,23 @@ public class StudentController {
         return ResponseEntity.ok(studentDTOS);
     }
 
+
     @PostMapping
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<StudentDTO> createStudent(@RequestBody @Valid StudentDTO studentDTO) {
         StudentDTO createdStudent = studentService.createStudent(studentDTO);
         return ResponseEntity.ok(createdStudent);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<StudentDTO> updateStudent(@RequestBody @Valid StudentDTO studentDTO, @PathVariable UUID id) {
         StudentDTO updatedStudent = studentService.updateStudent(studentDTO, id);
         return ResponseEntity.ok(updatedStudent);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<StudentDTO> DeleteStudent(@PathVariable UUID id) {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
