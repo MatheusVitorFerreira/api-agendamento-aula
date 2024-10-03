@@ -1,7 +1,5 @@
 # Sistema de Agendamento de Aulas
 
-👷🏻 Em Construção
-
 ## Visão Geral
 
 O projeto é um sistema de Gerenciamento Acadêmico desenvolvido para otimizar a administração e a organização de instituições de ensino. Ele oferece uma plataforma integrada que facilita o gerenciamento de informações de usuários, disciplinas e aulas, bem como a interação entre professores e alunos.
@@ -9,8 +7,38 @@ O projeto é um sistema de Gerenciamento Acadêmico desenvolvido para otimizar a
 ## Diagrama UML
 
 ![diagrama](https://github.com/MatheusVitorFerreira/ChatLive/blob/main/Documente%20seus%20sistemas%20(6).png)
+## Pré-requisitos
 
+### Docker
 
+Para executar este projeto, você precisará do Docker instalado em sua máquina. Siga os passos abaixo para configurar o ambiente:
+
+1. **Instalação do Docker Desktop:**
+   - Baixe e instale o [Docker Desktop](https://www.docker.com/get-started).
+
+2. **Criar uma rede Docker:**
+   - Após a instalação, crie uma rede Docker para o projeto com o seguinte comando:
+   
+     docker network create <nome_da_rede>
+  
+3. **Subir o banco de dados em Docker:**
+   - Utilize o comando abaixo para subir o banco de dados PostgreSQL:
+     
+     docker run --name <nome_do_container> --network <nome_da_rede> -e POSTGRES_USER=<USER> -e POSTGRES_PASSWORD=<PASSWORD> -e POSTGRES_DB=schedule -p 5432:5432 -d postgres
+    
+4. **Fazer o Build da Aplicação:**
+   - Execute o comando para construir a imagem da aplicação:
+   - 
+     docker build --tag <nome_da_imagem> .
+ 
+5. **Criar o Container para subir a aplicação:**
+   - Inicie o container da aplicação com o comando:
+
+     docker run --name agenda-aulas-api -p 8080:8080 --network <nome_da_rede> <nome_da_imagem>
+
+**Observação:** Substitua `<nome_da_rede>`, `<nome_do_container>`, `<USER>`, `<PASSWORD>`, e `<nome_da_imagem>` pelos valores correspondentes à sua configuração.
+
+ 
 ## Funcionalidades
 
 - *Gerenciamento de Usuários:* Permite o cadastro e gerenciamento de informações pessoais para professores, alunos e administradores. Inclui funcionalidades para atualizar dados, gerenciar permissões e visualizar perfis.
@@ -31,5 +59,6 @@ O projeto é um sistema de Gerenciamento Acadêmico desenvolvido para otimizar a
  Para facilitar o uso e a integração com outros sistemas, todo o sistema é documentado utilizando Swagger. A documentação interativa do Swagger oferece uma visão detalhada das APIs disponíveis, permitindo fácil consulta e compreensão das funcionalidades oferecidas pelo sistema.
  
 Endpoint Swagger: /swagger-ui/index.html#/
+
 
 
