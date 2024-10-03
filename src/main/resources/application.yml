@@ -1,0 +1,38 @@
+jwt:
+  public:
+    key: classpath:app.pub
+  private:
+    key: classpath:app.key
+
+spring:
+  datasource:
+    url: jdbc:postgresql://agenda-aula-postgres:5432/schedule
+    username: postgres
+    password: 120900m
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+      format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+logging:
+  level:
+    org:
+      flywaydb: DEBUG
+      springframework:
+        security: DEBUG

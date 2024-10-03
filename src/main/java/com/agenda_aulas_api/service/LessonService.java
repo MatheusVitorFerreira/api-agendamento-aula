@@ -130,4 +130,19 @@ public class LessonService {
             throw new DatabaseNegatedAccessException("Failed to delete Lesson: " + e.getMessage());
         }
     }
+    public List<Map<String, Object>> findLessonsWithoutSchedule() {
+        try {
+            return lessonRepository.findByScheduleClassIsNull().stream()
+                    .map(lesson -> {
+                        Map<String, Object> filteredMap = new HashMap<>();
+                        filteredMap.put("idLesson", lesson.getIdLesson());
+                        filteredMap.put("availableSlots", lesson.getAvailableSlots());
+                        filteredMap.put("location", lesson.getLocation());
+                        return filteredMap;
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+        }
+    }
 }
