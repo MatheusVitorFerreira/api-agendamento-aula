@@ -1,25 +1,40 @@
 jwt:
-  public:
-    key: classpath:app.pub
-  private:
-    key: classpath:app.key
+  public-key: classpath:app.pub
+  private-key: classpath:app.key
 
 spring:
+  application:
+    name: "agenda-aulas-api"
+
+  config:
+    activate:
+      on-profile:
+        - qa
+
   datasource:
     url: jdbc:postgresql://postgres-db:5432/schedule?currentSchema=public
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
+
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
       format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+    swagger-ui:
+      path: /agenda-api/swagger-ui.html
+
 
   flyway:
     enabled: true
     locations: classpath:db/migration
     clean-disabled: false
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -31,9 +46,10 @@ spring:
           auth: true
           starttls:
             enable: true
+
 logging:
   level:
     org:
       flywaydb: DEBUG
-      springframework:
-        security: DEBUG
+    springframework:
+      security: DEBUG
