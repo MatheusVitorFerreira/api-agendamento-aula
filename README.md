@@ -57,5 +57,35 @@ Para executar este projeto, você precisará do Docker instalado em sua máquina
  
 Endpoint Swagger: /swagger-ui/index.html#/
 
+## Acessando o PGAdmin
 
+Para acessar a interface do PGAdmin, siga os passos abaixo:
 
+1. **Abra seu navegador** e vá para a seguinte URL:
+  http://localhost:16543/
+
+2. **Faça login** utilizando as seguintes credenciais:
+- **Email:** `admin@gmail.com`
+- **Senha:** `admin`
+  
+## Após fazer login, você verá a interface do PGAdmin.
+
+# Conectando ao Banco de Dados PostgreSQL
+
+Uma vez dentro do PGAdmin, você precisará adicionar uma nova conexão ao banco de dados PostgreSQL. Siga estas etapas:
+
+1. Clique em **"Add New Server"** ou no ícone de "Adicionar Servidor".
+
+2. Na aba **General**, forneça um nome para o servidor, por exemplo:
+- **Name:** `Postgres DB`
+
+3. Na aba **Connection**, insira os seguintes detalhes:
+- **Host:** `postgres-db` 
+- **Port:** `5432`
+- **Username:** `admin`
+- **Password:** `admin`
+- **Database:** `schedule` 
+
+4. Clique em **Save** para criar a conexão.
+
+5. Agora você pode explorar e gerenciar seu banco de dados `schedule` através do PGAdmin!
