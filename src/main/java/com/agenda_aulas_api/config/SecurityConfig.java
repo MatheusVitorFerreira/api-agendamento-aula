@@ -53,15 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/sistema-agendamento-aula/api/v1/schedule-classes/**").permitAll()
                         .requestMatchers("/sistema-agendamento-aula/api/v1/student/**").permitAll()
                         .requestMatchers("/sistema-agendamento-aula/api/v1/token/**").permitAll()
-<<<<<<< HEAD
                         .requestMatchers("/v3/api-docs/**").permitAll() // Permite acesso à documentação
                         .requestMatchers("/swagger-ui/**").permitAll() // Permite acesso ao Swagger UI
                         .requestMatchers("/swagger-ui.html").permitAll() // Permite acesso ao Swagger UI HTML
-=======
-                        .requestMatchers("/v3/api-docs/**").permitAll()  // Permite acesso à documentação
-                        .requestMatchers("/swagger-ui/**").permitAll()    // Permite acesso ao Swagger UI
-                        .requestMatchers("/swagger-ui.html").permitAll()  // Permite acesso ao Swagger UI HTML
->>>>>>> test
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
@@ -69,7 +63,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public JwtDecoder jwtDecoder() {
@@ -87,13 +80,10 @@ public class SecurityConfig {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
-<<<<<<< HEAD
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers("/**.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs/**", "/swagger-ui.html", "/swagger-ui/**");
     }
-=======
->>>>>>> test
 }

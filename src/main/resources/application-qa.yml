@@ -1,6 +1,9 @@
 jwt:
-  public-key: classpath:app.pub
-  private-key: classpath:app.key
+  public:
+    key: classpath:app.pub
+  private:
+    key: classpath:app.key
+
 
 spring:
   application:
@@ -27,7 +30,7 @@ spring:
     api-docs:
       path: /v3/api-docs
     swagger-ui:
-      path: /agenda-api/swagger-ui.html
+      path: /swagger-ui.html
 
 
   flyway:
