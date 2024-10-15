@@ -19,26 +19,23 @@ Para executar este projeto, você precisará do Docker instalado em sua máquina
 2. **Criar uma rede Docker:**
    - Após a instalação, crie uma rede Docker para o projeto com o seguinte comando:
    
-     docker network create <nome_da_rede>
-  
-3. **Subir o banco de dados em Docker:**
-   - Utilize o comando abaixo para subir o banco de dados PostgreSQL:
+         docker network create docker-network
      
-     docker run --name <nome_do_container> --network <nome_da_rede> -e POSTGRES_USER=<USER> -e POSTGRES_PASSWORD=<PASSWORD> -e POSTGRES_DB=schedule -p 5432:5432 -d postgres
-    
-4. **Fazer o Build da Aplicação:**
+3. **Fazer o Build da Aplicação:**
    - Execute o comando para construir a imagem da aplicação:
-   - 
-     docker build --tag <nome_da_imagem> .
+     
+         docker build --tag agenda-aulas-api .
  
-5. **Criar o Container para subir a aplicação:**
-   - Inicie o container da aplicação com o comando:
+4. **Subir a Aplicação com Docker Compose:**
+   Agora, você irá utilizar o docker-compose-qa.yml para subir os containers da aplicação, banco de dados e o pgAdmin.
 
-     docker run --name agenda-aulas-api -p 8080:8080 --network <nome_da_rede> <nome_da_imagem>
+         docker-compose -f docker-compose-qa.yml up --build
 
-**Observação:** Substitua `<nome_da_rede>`, `<nome_do_container>`, `<USER>`, `<PASSWORD>`, e `<nome_da_imagem>` pelos valores correspondentes à sua configuração.
+- Constrói os containers especificados no arquivo docker-compose-qa.yml.
+- Utiliza a imagem agenda-aulas-api que você criou.
+- Inicia os serviços definidos (banco de dados Postgres, aplicação api-agenda, e pgAdmin).
 
- 
+
 ## Funcionalidades
 
 - *Gerenciamento de Usuários:* Permite o cadastro e gerenciamento de informações pessoais para professores, alunos e administradores. Inclui funcionalidades para atualizar dados, gerenciar permissões e visualizar perfis.
