@@ -102,29 +102,27 @@ public class ScheduleClassService {
             );
         }
     }
-
     @Transactional
     public ScheduleClassDTO createScheduleClass(ScheduleClassDTO scheduleClassDTO) {
         try {
+            // Converter DTO para entidade
             ScheduleClass scheduleClass = scheduleClassDTO.toScheduleClass();
 
+            // Validar Lesson ID
             if (scheduleClassDTO.getLessonId() == null) {
                 throw new IllegalArgumentException("Lesson ID must be provided to schedule a class.");
             }
 
+            // Buscar lição e validar existência
             Lesson lesson = lessonRepository.findById(scheduleClassDTO.getLessonId())
                     .orElseThrow(() -> new LessonNotFoundException(
                             "Lesson not found with id: " + scheduleClassDTO.getLessonId()
                     ));
-            lesson.setStatus(StatusClass.CONFIRMED);
-            List<UUID> studentIds = lesson.getStudents().stream()
-                    .map(Student::getStudentId)
-                    .toList();
-            Set<UUID> uniqueStudentIds = new HashSet<>(studentIds);
-            if (uniqueStudentIds.size() < studentIds.size()) {
-                throw new DuplicateEntityException("Duplicate student IDs are not allowed.");
-            }
 
+            // Atualizar status da Lesson
+            lesson.setStatus(StatusClass.CONFIRMED);
+
+            // Verificar conflitos com horários de professores
             Teacher teacher = lesson.getTeacher();
             if (teacher != null) {
                 for (DayOfWeek dayOfWeek : scheduleClassDTO.getWeekDays()) {
@@ -138,24 +136,19 @@ public class ScheduleClassService {
                 }
             }
 
+            // Associar dados necessários
             scheduleClass.setClassShift(lesson.getClassShift());
-            scheduleClass.setTeacher(lesson.getTeacher());
+            scheduleClass.setTeacher(teacher);
+            scheduleClass.setLesson(lesson);
 
+            // Salvar a ScheduleClass
             ScheduleClass savedScheduleClass = scheduleClassRepository.save(scheduleClass);
 
-            ScheduleClassTeacher scheduleClassTeacher = new ScheduleClassTeacher();
-            scheduleClassTeacher.setDaysOfWeek(scheduleClassDTO.getWeekDays());
-            scheduleClassTeacher.setStartTime(scheduleClassDTO.getStartTime());
-            scheduleClassTeacher.setEndTime(scheduleClassDTO.getEndTime());
-            scheduleClassTeacher.setLesson(lesson);
-            scheduleClassTeacher.setScheduleClass(savedScheduleClass);
-            scheduleClassTeacher.setTeacher(lesson.getTeacher());
-
-            scheduleClassTeacherRepository.save(scheduleClassTeacher);
+            // Atualizar Lesson com a ScheduleClass
             lesson.setScheduleClass(savedScheduleClass);
             lessonRepository.save(lesson);
-            savedScheduleClass.getScheduleClassTeachers().add(scheduleClassTeacher);
-            scheduleClassRepository.save(savedScheduleClass);
+
+            // Retornar o DTO criado
             return ScheduleClassDTO.fromScheduleClass(savedScheduleClass);
 
         } catch (LessonNotFoundException | DuplicateEntityException | ScheduleConflictException e) {
