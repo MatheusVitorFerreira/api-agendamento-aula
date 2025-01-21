@@ -135,7 +135,6 @@ public class ScheduleClassService {
                     }
                 }
             }
-
             // Associar dados necessários
             scheduleClass.setClassShift(lesson.getClassShift());
             scheduleClass.setTeacher(teacher);
