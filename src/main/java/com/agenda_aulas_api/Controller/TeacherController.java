@@ -52,7 +52,7 @@ public class TeacherController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<TeacherDTO> createTeacher(@Valid @RequestBody TeacherDTO teacherDTO) {
         TeacherDTO saveTeacher = teacherService.createTeacher(teacherDTO);
         URI headerLocation = ServletUriComponentsBuilder
@@ -60,7 +60,7 @@ public class TeacherController {
                 .path("/{id}")
                 .buildAndExpand(saveTeacher.getTeacherId())
                 .toUri();
-        return ResponseEntity.created(headerLocation).build();
+        return ResponseEntity.created(headerLocation).body(saveTeacher);
     }
 
 

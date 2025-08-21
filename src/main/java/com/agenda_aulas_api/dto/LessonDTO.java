@@ -1,10 +1,6 @@
 package com.agenda_aulas_api.dto;
 
-import com.agenda_aulas_api.domain.Lesson;
-import com.agenda_aulas_api.domain.ScheduleClass;
-import com.agenda_aulas_api.domain.StatusClass;
-import com.agenda_aulas_api.domain.Student;
-import com.agenda_aulas_api.domain.ClassShift;
+import com.agenda_aulas_api.domain.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,16 +42,20 @@ public class LessonDTO {
                         .collect(Collectors.toList())
                         : List.of(),
                 lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
-                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getClassShift() : null
+                lesson.getScheduleClass() != null
+                        ? lesson.getScheduleClass().getClassShift()
+                        : lesson.getClassShift() // fallback caso não tenha ScheduleClass
         );
     }
 
+    // Constrói uma Lesson a partir do DTO
     public Lesson toLesson() {
         Lesson lesson = new Lesson();
         lesson.setIdLesson(this.idLesson);
         lesson.setAvailableSlots(this.availableSlots);
         lesson.setStatus(this.status);
         lesson.setLocation(this.location);
+        lesson.setClassShift(this.classShift);
 
         if (this.idClassSchedule != null) {
             ScheduleClass scheduleClass = new ScheduleClass();

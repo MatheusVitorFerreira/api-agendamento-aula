@@ -20,10 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -126,12 +123,19 @@ public class TeacherService {
                 if (disciplines.size() != dto.getDisciplineIds().size()) {
                     throw new DisciplineNotFoundException("Some disciplines were not found.");
                 }
+
+                if (teacher.getDisciplines() == null) {
+                    teacher.setDisciplines(new ArrayList<>());
+                }
+
                 teacher.getDisciplines().addAll(disciplines);
             }
 
             teacher = teacherRepository.save(teacher);
+
             return TeacherDTO.fromTeacher(teacher);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }

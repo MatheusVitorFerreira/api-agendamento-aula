@@ -53,8 +53,8 @@ public class SecurityConfig {
                         .requestMatchers("/sistema-agendamento-aula/api/v1/schedule-classes/**").permitAll()
                         .requestMatchers("/sistema-agendamento-aula/api/v1/student/**").permitAll()
                         .requestMatchers("/sistema-agendamento-aula/api/v1/token/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll() // Permite acesso à documentação
-                        .requestMatchers("/swagger-ui/**").permitAll() // Permite acesso ao Swagger UI
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll() // Permite acesso ao Swagger UI HTML
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())

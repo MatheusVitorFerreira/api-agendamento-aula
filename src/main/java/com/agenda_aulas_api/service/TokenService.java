@@ -1,64 +1,46 @@
 package com.agenda_aulas_api.service;
 
-
 import com.agenda_aulas_api.domain.User;
-import com.agenda_aulas_api.repository.UserRepository;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
-
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.stream.Collectors;
 
 @Service
-@Data
+@RequiredArgsConstructor
 public class TokenService {
 
-	private final String secret = "";
-	private final long expirationTimeInMinutes = 120;
-	private UserRepository userRepository;
+	private final JwtEncoder jwtEncoder;
 
+	private final long expirationTimeInMinutes = 120;
 
 	public TokenResponse generateToken(User user) {
-		Instant expirationInstant = Instant.now().plus(expirationTimeInMinutes, ChronoUnit.MINUTES);
-		Date expirationDate = Date.from(expirationInstant);
+		Instant now = Instant.now();
+		Instant expiresAt = now.plus(expirationTimeInMinutes, ChronoUnit.MINUTES);
 
-		return generateToken(user, expirationDate);
-	}
+		String scope = user.getRoles().stream()
+				.map(r -> r.getName())
+				.collect(Collectors.joining(" "));
 
-	public TokenResponse generateToken(User user, Date expirationDate) {
-		try {
-			Algorithm algorithm = Algorithm.HMAC256(secret);
+		JwtClaimsSet claims = JwtClaimsSet.builder()
+				.issuer("agenda_aulas_api")
+				.issuedAt(now)
+				.expiresAt(expiresAt)
+				.subject(user.getUsername())
+				.claim("scope", scope)
+				.build();
 
-			String token = JWT.create().withIssuer("auth").withSubject(user.getUsername()).withExpiresAt(expirationDate)
-					.sign(algorithm);
+		String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-			Instant expirationInstant = expirationDate.toInstant();
-			return new TokenResponse(token, expirationInstant.toString());
-
-		} catch (JWTVerificationException exception) {
-			throw new RuntimeException("Erro ao gerar token", exception);
-		}
-	}
-
-	public String validateToken(String token) {
-		try {
-			Algorithm algorithm = Algorithm.HMAC256(secret);
-			DecodedJWT decodedJWT = JWT.require(algorithm).build().verify(token);
-			return decodedJWT.getSubject();
-		} catch (JWTVerificationException exception) {
-			return null;
-		}
+		return new TokenResponse(token, expiresAt.toString());
 	}
 
 	@Getter
-    public static class TokenResponse {
+	public static class TokenResponse {
 		private final String token;
 		private final String expiration;
 
@@ -66,7 +48,5 @@ public class TokenService {
 			this.token = token;
 			this.expiration = expiration;
 		}
-
-    }
-
+	}
 }

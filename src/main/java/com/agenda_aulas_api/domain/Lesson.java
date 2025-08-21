@@ -43,7 +43,7 @@ public class Lesson implements Serializable {
     @Enumerated(EnumType.STRING)
     private ClassShift classShift;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "schedule_class_id")
     @JsonBackReference
     private ScheduleClass scheduleClass;

@@ -52,4 +52,5 @@ public class ScheduleClassStudent implements Serializable {
         ScheduleClassStudent that = (ScheduleClassStudent) o;
         return Objects.equals(studentSchedulingId, that.studentSchedulingId);
     }
+
 }
