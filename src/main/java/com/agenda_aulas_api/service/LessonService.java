@@ -69,7 +69,6 @@ public class LessonService {
     public LessonRequestRecordDTO createLesson(LessonRequestRecordDTO lessonRequestRecordDTO) {
         try {
             Lesson lesson = lessonRequestRecordDTO.toLesson();
-
             Teacher teacher = teacherRepository.findById(lessonRequestRecordDTO.teacherId())
                     .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: "
                             + lessonRequestRecordDTO.teacherId()));

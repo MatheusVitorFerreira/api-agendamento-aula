@@ -8,10 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -23,6 +20,8 @@ public class Lesson implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_lesson", updatable = false, unique = true, nullable = false)
     private UUID idLesson;
+
+    private String nameLesson;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "teacher_id", nullable = false)
@@ -65,15 +64,11 @@ public class Lesson implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Lesson lesson = (Lesson) o;
+        if (!(o instanceof Lesson lesson)) return false;
         return Objects.equals(idLesson, lesson.idLesson);
     }
 
     public void addStudent(Student student) {
-        if (this.students == null) {
-            this.students = new ArrayList<>();
-        }
         if (!this.students.contains(student)) {
             this.students.add(student);
             student.getLessons().add(this);
@@ -81,8 +76,7 @@ public class Lesson implements Serializable {
     }
 
     public void removeStudent(Student student) {
-        if (this.students != null) {
-            this.students.remove(student);
+        if (this.students.remove(student)) {
             student.getLessons().remove(this);
         }
     }

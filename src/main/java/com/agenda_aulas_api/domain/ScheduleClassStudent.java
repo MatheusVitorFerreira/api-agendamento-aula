@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -30,10 +29,6 @@ public class ScheduleClassStudent implements Serializable {
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "day_of_week", nullable = false)
-    private DayOfWeek dayOfWeek;
-
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
 
@@ -52,5 +47,4 @@ public class ScheduleClassStudent implements Serializable {
         ScheduleClassStudent that = (ScheduleClassStudent) o;
         return Objects.equals(studentSchedulingId, that.studentSchedulingId);
     }
-
 }

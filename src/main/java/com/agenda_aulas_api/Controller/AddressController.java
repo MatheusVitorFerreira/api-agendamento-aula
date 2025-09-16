@@ -30,7 +30,6 @@ public class AddressController {
 
     @GetMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR') or hasAuthority('SCOPE_BASIC')")
-
     public ResponseEntity<AddressDTO> getAddressById(@PathVariable UUID id) {
         AddressDTO addressDTO = addressService.findById(id);
         return ResponseEntity.ok(addressDTO);

@@ -18,11 +18,11 @@ public interface ScheduleClassStudentRepository extends JpaRepository<ScheduleCl
     @Query("SELECT scs FROM ScheduleClassStudent scs WHERE scs.scheduleClass = :scheduleClass")
     List<ScheduleClassStudent> findByScheduleClass(@Param("scheduleClass") ScheduleClass scheduleClass);
 
-    @Query("SELECT scs FROM ScheduleClassStudent scs WHERE scs.scheduleClass.id = :scheduleClassId")
+    @Query("SELECT scs FROM ScheduleClassStudent scs WHERE scs.scheduleClass.idClassSchedule = :scheduleClassId")
     List<ScheduleClassStudent> findByScheduleClassId(@Param("scheduleClassId") UUID scheduleClassId);
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM ScheduleClassStudent scs WHERE scs.scheduleClass.id = :scheduleClassId")
+    @Query("DELETE FROM ScheduleClassStudent scs WHERE scs.scheduleClass.idClassSchedule = :scheduleClassId")
     void deleteByScheduleClassId(@Param("scheduleClassId") UUID scheduleClassId);
 }

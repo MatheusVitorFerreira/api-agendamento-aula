@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -20,11 +17,6 @@ public class ScheduleClassTeacher {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "teacher_scheduling_id", updatable = false, unique = true, nullable = false)
     private UUID teacherSchedulingId;
-
-    @Column(name = "days_of_week", nullable = false)
-    @ElementCollection(targetClass = DayOfWeek.class)
-    @Enumerated(EnumType.STRING)
-    private List<DayOfWeek> daysOfWeek = new ArrayList<>();
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
@@ -50,7 +42,6 @@ public class ScheduleClassTeacher {
         if (o == null || getClass() != o.getClass()) return false;
         ScheduleClassTeacher that = (ScheduleClassTeacher) o;
         return Objects.equals(teacherSchedulingId, that.teacherSchedulingId) &&
-                Objects.equals(daysOfWeek, that.daysOfWeek) &&
                 Objects.equals(startTime, that.startTime) &&
                 Objects.equals(endTime, that.endTime) &&
                 Objects.equals(lesson, that.lesson) &&
@@ -60,6 +51,6 @@ public class ScheduleClassTeacher {
 
     @Override
     public int hashCode() {
-        return Objects.hash(teacherSchedulingId, daysOfWeek, startTime, endTime, lesson, scheduleClass, teacher);
+        return Objects.hash(teacherSchedulingId, startTime, endTime, lesson, scheduleClass, teacher);
     }
 }

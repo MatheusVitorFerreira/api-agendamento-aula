@@ -17,4 +17,5 @@ public class ScheduleStatistics {
 
     private Long totalScheduledClasses = 0L;
     private Long totalScheduledStudentsActive = 0L;
+    private long totalStudents= 0L;
 }

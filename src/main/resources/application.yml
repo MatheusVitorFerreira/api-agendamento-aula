@@ -10,16 +10,16 @@ spring:
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       format_sql: true
 
   flyway:
-    enabled: true
-    locations: classpath:db/migration
-    clean-disabled: false
+    repair-on-migrate: true
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -31,9 +31,9 @@ spring:
           auth: true
           starttls:
             enable: true
+
 logging:
   level:
     org:
-      flywaydb: DEBUG
       springframework:
         security: DEBUG

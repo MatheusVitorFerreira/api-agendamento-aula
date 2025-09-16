@@ -49,6 +49,20 @@ public class ScheduleStatisticsService {
         repository.save(stats);
     }
 
+    @Transactional
+    public void incrementTotalStudents() {
+        ScheduleStatistics stats = getStats();
+        stats.setTotalStudents(stats.getTotalStudents() + 1);
+        repository.save(stats);
+    }
+
+    @Transactional
+    public void decrementTotalStudents() {
+        ScheduleStatistics stats = getStats();
+        stats.setTotalStudents(Math.max(0, stats.getTotalStudents() - 1));
+        repository.save(stats);
+    }
+
     public ScheduleStatistics getCurrentStats() {
         return getStats();
     }

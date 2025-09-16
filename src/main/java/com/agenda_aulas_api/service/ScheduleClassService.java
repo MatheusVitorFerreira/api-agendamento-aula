@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,10 +45,10 @@ public class ScheduleClassService {
             LessonDTO lessonDTO = LessonDTO.fromLesson(sc.getLesson());
             return new ScheduleRequestRecord(
                     sc.getIdClassSchedule(),
-                    sc.getWeekDays(),
                     lessonDTO,
-                    sc.getStartTime().toString(),
-                    sc.getEndTime().toString()
+                    sc.getDate() != null ? sc.getDate().toString() : null,
+                    sc.getStartTime() != null ? sc.getStartTime().toString() : null,
+                    sc.getEndTime() != null ? sc.getEndTime().toString() : null
             );
         });
     }
@@ -62,10 +61,10 @@ public class ScheduleClassService {
 
         return new ScheduleRequestRecord(
                 sc.getIdClassSchedule(),
-                sc.getWeekDays(),
                 lessonDTO,
-                sc.getStartTime().toString(),
-                sc.getEndTime().toString()
+                sc.getDate() != null ? sc.getDate().toString() : null,
+                sc.getStartTime() != null ? sc.getStartTime().toString() : null,
+                sc.getEndTime() != null ? sc.getEndTime().toString() : null
         );
     }
 
@@ -78,16 +77,14 @@ public class ScheduleClassService {
                 .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + dto.getLessonId()));
 
         lesson.setStatus(StatusClass.CONFIRMED);
-
         Teacher teacher = lesson.getTeacher();
+
         if (teacher != null) {
-            for (DayOfWeek day : dto.getWeekDays()) {
-                List<ScheduleClass> conflicts = scheduleClassRepository.findConflictingClasses(
-                        teacher, day, dto.getStartTime(), dto.getEndTime()
-                );
-                if (!conflicts.isEmpty())
-                    throw new ScheduleConflictException("Conflict with teacher schedule on " + day);
-            }
+            List<ScheduleClass> conflicts = scheduleClassRepository.findConflictingClasses(
+                    teacher.getTeacherId(), dto.getDate(), dto.getStartTime(), dto.getEndTime()
+            );
+            if (!conflicts.isEmpty())
+                throw new ScheduleConflictException("Conflict with teacher schedule on " + dto.getDate());
         }
 
         ScheduleClass scheduleClass = dto.toScheduleClass();
@@ -108,9 +105,23 @@ public class ScheduleClassService {
     @Transactional
     public ScheduleClassDTO updateScheduleClass(ScheduleClassDTO dto, UUID idClass) {
         ScheduleClass existing = scheduleClassRepository.findById(idClass)
-                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Schedule Class not found with id: " + idClass));
+                .orElseThrow(
+                        () -> new ScheduleClassRepositoryNotFoundException("Schedule Class not found with id: " + idClass));
 
-        existing.setWeekDays(dto.getWeekDays());
+        if (existing.getTeacher() != null) {
+            List<ScheduleClass> conflicts = scheduleClassRepository.findConflictingClasses(
+                            existing.getTeacher().getTeacherId(), dto.getDate(), dto.getStartTime(), dto.getEndTime()
+                    ).stream()
+                    .filter(sc -> !sc.getIdClassSchedule().equals(existing.getIdClassSchedule())) // evita conflito consigo mesmo
+                    .toList();
+
+            if (!conflicts.isEmpty())
+                throw new ScheduleConflictException("Conflict with teacher schedule on " + dto.getDate());
+        }
+
+        existing.setDate(dto.getDate());
+        existing.setStartTime(dto.getStartTime());
+        existing.setEndTime(dto.getEndTime());
 
         if (dto.getLessonId() != null) {
             Lesson lesson = lessonRepository.findById(dto.getLessonId())
@@ -164,46 +175,31 @@ public class ScheduleClassService {
     @Transactional
     public void addStudentToScheduleClass(UUID scheduleClassId, UUID studentId) {
         ScheduleClass sc = scheduleClassRepository.findById(scheduleClassId)
-                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Classe não encontrada"));
+                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Class not found"));
 
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException("Aluno não encontrado"));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found"));
 
         Lesson lesson = sc.getLesson();
         if (lesson == null)
-            throw new LessonNotFoundException("Lição não encontrada");
+            throw new LessonNotFoundException("Lesson not found");
 
         if (lesson.getAvailableSlots() <= 0)
-            throw new NoAvailableSlotsException("Não há slots disponíveis");
+            throw new NoAvailableSlotsException("No available slots");
 
-        Set<DayOfWeek> registeredDays = sc.getScheduleClassStudents().stream()
-                .filter(scs -> scs.getStudent().equals(student))
-                .map(ScheduleClassStudent::getDayOfWeek)
-                .collect(Collectors.toSet());
+        ScheduleClassStudent scs = new ScheduleClassStudent();
+        scs.setScheduleClass(sc);
+        scs.setStudent(student);
+        scs.setStartTime(sc.getStartTime());
+        scs.setEndTime(sc.getEndTime());
 
-        List<ScheduleClassStudent> newEnrollments = new ArrayList<>();
-        for (DayOfWeek day : sc.getWeekDays()) {
-            if (!registeredDays.contains(day)) {
-                ScheduleClassStudent scs = new ScheduleClassStudent();
-                scs.setScheduleClass(sc);
-                scs.setStudent(student);
-                scs.setDayOfWeek(day);
-                scs.setStartTime(sc.getStartTime());
-                scs.setEndTime(sc.getEndTime());
-                newEnrollments.add(scs);
-            }
-        }
-        if (!newEnrollments.isEmpty()) {
-            scheduleClassStudentRepository.saveAll(newEnrollments);
-            sc.getScheduleClassStudents().addAll(newEnrollments);
-            lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
-            lesson.getStudents().removeIf(s -> s.equals(student));
-            lesson.addStudent(student);
-            lessonRepository.save(lesson);
-            scheduleClassRepository.save(sc);
+        scheduleClassStudentRepository.save(scs);
+        sc.getScheduleClassStudents().add(scs);
 
-            scheduleStatisticsService.incrementActiveStudents();
-        }
+        lesson.setAvailableSlots(lesson.getAvailableSlots() - 1);
+        lesson.addStudent(student);
+        lessonRepository.save(lesson);
+        scheduleClassRepository.save(sc);
 
         Enrollment enrollment = enrollmentRepository.findByStudentAndScheduleClass(student, sc)
                 .orElse(new Enrollment(student, sc, StatusClass.CONFIRMED));
@@ -214,19 +210,19 @@ public class ScheduleClassService {
     @Transactional
     public void removeStudentFromScheduleClass(UUID scheduleClassId, UUID studentId) {
         ScheduleClass sc = scheduleClassRepository.findById(scheduleClassId)
-                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Classe não encontrada"));
+                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Class not found"));
 
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException("Aluno não encontrado"));
+                .orElseThrow(() -> new StudentNotFoundException("Student not found"));
 
         Lesson lesson = sc.getLesson();
         if (lesson == null)
-            throw new LessonNotFoundException("Lição não encontrada");
+            throw new LessonNotFoundException("Lesson not found");
 
         ScheduleClassStudent toRemove = sc.getScheduleClassStudents().stream()
                 .filter(scs -> scs.getStudent().equals(student))
                 .findFirst()
-                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Associação não encontrada"));
+                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Association not found"));
 
         scheduleClassStudentRepository.delete(toRemove);
         sc.getScheduleClassStudents().remove(toRemove);
@@ -236,7 +232,7 @@ public class ScheduleClassService {
         lessonRepository.save(lesson);
 
         Enrollment enrollment = enrollmentRepository.findByStudentAndScheduleClass(student, sc)
-                .orElseThrow(() -> new EnrollmentNotFoundException("Matrícula não encontrada"));
+                .orElseThrow(() -> new EnrollmentNotFoundException("Enrollment not found"));
         enrollmentRepository.delete(enrollment);
 
         scheduleClassRepository.save(sc);

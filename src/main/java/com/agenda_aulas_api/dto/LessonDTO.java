@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class LessonDTO {
 
     private UUID idLesson;
+    private String nameLesson;
     private UUID teacherId;
     private UUID disciplineId;
     private int availableSlots;
@@ -31,6 +32,7 @@ public class LessonDTO {
 
         return new LessonDTO(
                 lesson.getIdLesson(),
+                lesson.getNameLesson(),
                 lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
                 lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
                 lesson.getAvailableSlots(),
@@ -44,14 +46,14 @@ public class LessonDTO {
                 lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
                 lesson.getScheduleClass() != null
                         ? lesson.getScheduleClass().getClassShift()
-                        : lesson.getClassShift() // fallback caso não tenha ScheduleClass
+                        : lesson.getClassShift()
         );
     }
 
-    // Constrói uma Lesson a partir do DTO
     public Lesson toLesson() {
         Lesson lesson = new Lesson();
         lesson.setIdLesson(this.idLesson);
+        lesson.setNameLesson(this.nameLesson);
         lesson.setAvailableSlots(this.availableSlots);
         lesson.setStatus(this.status);
         lesson.setLocation(this.location);

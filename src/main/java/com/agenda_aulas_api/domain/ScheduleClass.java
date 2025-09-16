@@ -6,11 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -25,11 +26,9 @@ public class ScheduleClass {
     @OneToMany(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Enrollment> enrollments = new ArrayList<>();
 
-    @ElementCollection(targetClass = DayOfWeek.class)
-    @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "schedule_class_weekdays", joinColumns = @JoinColumn(name = "schedule_class_id"))
-    @Column(name = "week_day")
-    private List<DayOfWeek> weekDays = new ArrayList<>();
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     @Column(name = "start_time", nullable = false)
@@ -39,8 +38,8 @@ public class ScheduleClass {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @ManyToOne
-    @JoinColumn(name = "teacher_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
     @OneToOne(mappedBy = "scheduleClass", cascade = CascadeType.ALL, orphanRemoval = true)

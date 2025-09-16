@@ -55,7 +55,8 @@ public class SecurityConfig {
                         .requestMatchers("/sistema-agendamento-aula/api/v1/token/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll() // Permite acesso ao Swagger UI HTML
+                        .requestMatchers("/sistema-agendamento-aula/api/v1/statistics/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))

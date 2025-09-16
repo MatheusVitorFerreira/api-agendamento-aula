@@ -5,15 +5,14 @@ import com.agenda_aulas_api.domain.ScheduleClass;
 import com.agenda_aulas_api.domain.Student;
 import com.agenda_aulas_api.dto.LessonDTO;
 
-import java.time.DayOfWeek;
-import java.util.List;
-import java.util.UUID;
+import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 public record ScheduleRequestRecord(
         UUID idClassSchedule,
-        List<DayOfWeek> weekDays,
         LessonDTO lesson,
+        String date,
         String startTime,
         String endTime
 ) {
@@ -23,25 +22,13 @@ public record ScheduleRequestRecord(
 
         if (scheduleClass.getLesson() != null) {
             Lesson lesson = scheduleClass.getLesson();
-            lessonDTO = new LessonDTO(
-                    lesson.getIdLesson(),
-                    lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
-                    lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
-                    lesson.getAvailableSlots(),
-                    lesson.getStatus(),
-                    lesson.getLocation(),
-                    lesson.getStudents() != null ?
-                            lesson.getStudents().stream().map(Student::getStudentId).collect(Collectors.toList()) :
-                            null,
-                    lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
-                    lesson.getClassShift()
-            );
+            lessonDTO = LessonDTO.fromLesson(lesson);
         }
 
         return new ScheduleRequestRecord(
                 scheduleClass.getIdClassSchedule(),
-                scheduleClass.getWeekDays(),
                 lessonDTO,
+                scheduleClass.getDate() != null ? scheduleClass.getDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : null,
                 scheduleClass.getStartTime() != null ? scheduleClass.getStartTime().toString() : null,
                 scheduleClass.getEndTime() != null ? scheduleClass.getEndTime().toString() : null
         );

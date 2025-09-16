@@ -36,6 +36,9 @@ public class StudentService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ScheduleStatisticsService statisticsService;
+
     public List<Map<String, Object>> findAll() {
         try {
             return studentRepository.findAll()
@@ -117,6 +120,7 @@ public class StudentService {
                                 + " and CPF: " + student.getCpf());
             }
             student = studentRepository.save(student);
+            statisticsService.incrementTotalStudents();
             return StudentDTO.fromStudent(student);
         } catch (DuplicateEntityException e) {
             throw e;
@@ -160,5 +164,6 @@ public class StudentService {
             addressRepository.delete(address);
         }
         studentRepository.delete(student);
+        statisticsService.incrementTotalStudents();
     }
 }
