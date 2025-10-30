@@ -1,7 +1,6 @@
 package com.agenda_aulas_api.Controller;
 
 import com.agenda_aulas_api.dto.TeacherDTO;
-import com.agenda_aulas_api.dto.record.DiciplineRecord;
 import com.agenda_aulas_api.service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -76,14 +75,5 @@ public class TeacherController {
     public ResponseEntity<TeacherDTO> deleteTeacher(@PathVariable UUID id) {
         teacherService.deleteTeacher(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{teacherId}/disciplines")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
-    public ResponseEntity<TeacherDTO> addDisciplineToTeacher(
-            @PathVariable UUID teacherId,
-            @RequestBody DiciplineRecord disciplineRecord) {
-        TeacherDTO updatedTeacherDTO = teacherService.addDisciplineToTeacher(teacherId, disciplineRecord);
-        return ResponseEntity.ok(updatedTeacherDTO);
     }
 }

@@ -2,7 +2,6 @@ package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.*;
 import com.agenda_aulas_api.dto.CreateUserDTO;
-import com.agenda_aulas_api.dto.DisciplineDTO;
 import com.agenda_aulas_api.dto.UserDTO;
 import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
 import com.agenda_aulas_api.exception.erros.UserCreationException;

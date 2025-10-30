@@ -22,7 +22,6 @@ public class TeacherDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID teacherId;
     private String fullName;
-    private List<UUID> disciplineIds = new ArrayList<>();
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDateTime;
@@ -49,10 +48,6 @@ public class TeacherDTO {
             teacher.setAddress(this.address.toAddress());
         }
 
-        if (teacher.getDisciplines() == null) {
-            teacher.setDisciplines(new ArrayList<>());
-        }
-
         return teacher;
     }
 
@@ -60,9 +55,6 @@ public class TeacherDTO {
         return new TeacherDTO(
                 teacher.getTeacherId(),
                 teacher.getFullName(),
-                teacher.getDisciplines() != null
-                        ? teacher.getDisciplines().stream().map(d -> d.getIdDiscipline()).toList()
-                        : new ArrayList<>(),
                 teacher.getBirthDate(),
                 teacher.getAge(),
                 teacher.getEmail(),

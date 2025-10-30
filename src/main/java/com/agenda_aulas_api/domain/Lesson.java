@@ -1,19 +1,17 @@
 package com.agenda_aulas_api.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.io.Serializable;
 import java.util.*;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Lesson implements Serializable {
 
     @Id
@@ -21,63 +19,32 @@ public class Lesson implements Serializable {
     @Column(name = "id_lesson", updatable = false, unique = true, nullable = false)
     private UUID idLesson;
 
-    private String nameLesson;
+    @Column(nullable = false)
+    private String title;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
-    @JsonIgnore
     private Teacher teacher;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "discipline_id", nullable = false)
-    private Discipline discipline;
-
-    private int availableSlots;
-
-    @Enumerated(EnumType.STRING)
-    private StatusClass status;
-
-    private String location;
-
-    @Enumerated(EnumType.STRING)
-    private ClassShift classShift;
-
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "schedule_class_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "classroom_id")
     @JsonBackReference
-    private ScheduleClass scheduleClass;
+    private Classroom classroom;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "lesson_students",
-            joinColumns = @JoinColumn(name = "lesson_id"),
-            inverseJoinColumns = @JoinColumn(name = "student_id")
-    )
-    @JsonIgnore
-    private List<Student> students = new ArrayList<>();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(idLesson);
-    }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Lesson lesson)) return false;
-        return Objects.equals(idLesson, lesson.idLesson);
-    }
+    @Enumerated(EnumType.STRING)
+    private StatusClass status = StatusClass.CONFIRMED;
 
-    public void addStudent(Student student) {
-        if (!this.students.contains(student)) {
-            this.students.add(student);
-            student.getLessons().add(this);
-        }
-    }
+    @OneToOne(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Schedule schedule;
 
-    public void removeStudent(Student student) {
-        if (this.students.remove(student)) {
-            student.getLessons().remove(this);
-        }
-    }
+    @Transient
+    private List<Material> materials = new ArrayList<>();
+
+    @Transient
+    private List<MuralPost> posts = new ArrayList<>();
+
 }

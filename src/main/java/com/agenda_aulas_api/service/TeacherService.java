@@ -1,13 +1,10 @@
 package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.Address;
-import com.agenda_aulas_api.domain.Discipline;
 import com.agenda_aulas_api.domain.Teacher;
 import com.agenda_aulas_api.dto.TeacherDTO;
-import com.agenda_aulas_api.dto.record.DiciplineRecord;
 import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.AddressRepository;
-import com.agenda_aulas_api.repository.DisciplineRepository;
 import com.agenda_aulas_api.repository.TeacherRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -30,9 +27,6 @@ public class TeacherService {
 
     @Autowired
     private TeacherRepository teacherRepository;
-
-    @Autowired
-    private DisciplineRepository disciplineRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -91,21 +85,6 @@ public class TeacherService {
         }
     }
 
-    public TeacherDTO addDisciplineToTeacher(UUID teacherId, DiciplineRecord disciplineRecord) {
-        Teacher teacher = teacherRepository.findById(teacherId)
-                .orElseThrow(() -> new TeacherNotFoundException("Teacher not found with id: " + teacherId));
-
-        Discipline discipline = disciplineRepository.findById(disciplineRecord.disciplineId())
-                .orElseThrow(() -> new DisciplineNotFoundException("Discipline not found with id: "
-                        + disciplineRecord.disciplineId()));
-
-        teacher.getDisciplines().add(discipline);
-
-        Teacher updatedTeacher = teacherRepository.save(teacher);
-
-        return TeacherDTO.fromTeacher(updatedTeacher);
-    }
-
     @Transactional
     public TeacherDTO createTeacher(TeacherDTO dto) {
         try {
@@ -116,23 +95,7 @@ public class TeacherService {
                 address = addressRepository.save(address);
                 teacher.setAddress(address);
             }
-
-            if (dto.getDisciplineIds() != null && !dto.getDisciplineIds().isEmpty()) {
-                List<Discipline> disciplines = disciplineRepository.findAllById(dto.getDisciplineIds());
-
-                if (disciplines.size() != dto.getDisciplineIds().size()) {
-                    throw new DisciplineNotFoundException("Some disciplines were not found.");
-                }
-
-                if (teacher.getDisciplines() == null) {
-                    teacher.setDisciplines(new ArrayList<>());
-                }
-
-                teacher.getDisciplines().addAll(disciplines);
-            }
-
             teacher = teacherRepository.save(teacher);
-
             return TeacherDTO.fromTeacher(teacher);
         } catch (Exception e) {
             e.printStackTrace();

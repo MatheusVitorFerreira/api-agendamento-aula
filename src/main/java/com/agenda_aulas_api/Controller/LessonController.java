@@ -1,6 +1,5 @@
 package com.agenda_aulas_api.Controller;
 
-import com.agenda_aulas_api.dto.LessonDTO;
 import com.agenda_aulas_api.dto.record.LessonRequestRecordDTO;
 import com.agenda_aulas_api.service.LessonService;
 import jakarta.validation.Valid;
@@ -17,53 +16,58 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/sistema-agendamento-aula/api/v1/lesson")
+@RequestMapping("api/v1/lesson")
 @RequiredArgsConstructor
 public class LessonController {
 
     private final LessonService lessonService;
 
     @GetMapping
-
     public ResponseEntity<List<Map<String, Object>>> getAllLessons() {
-        List<Map<String, Object>> lessonDTOList = lessonService.findAll();
-        return ResponseEntity.ok(lessonDTOList);
+        List<Map<String, Object>> lessons = lessonService.findAll();
+        return ResponseEntity.ok(lessons);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LessonDTO> getLessonById(@PathVariable UUID id) {
-        LessonDTO lessonDTO = lessonService.findById(id);
+    public ResponseEntity<LessonRequestRecordDTO> getLessonById(@PathVariable UUID id) {
+        LessonRequestRecordDTO lessonDTO = lessonService.findById(id);
         return ResponseEntity.ok(lessonDTO);
     }
 
-    @GetMapping(value = "/page")
-    public ResponseEntity<Page<LessonRequestRecordDTO>> findPageEnrollment(
+    @GetMapping("/page")
+    public ResponseEntity<Page<LessonRequestRecordDTO>> getPageLessons(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "linesPerPage", defaultValue = "24") Integer linesPerPage,
             @RequestParam(value = "orderBy", defaultValue = "idLesson") String orderBy,
-            @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
-        Page<LessonRequestRecordDTO> lessonDTOSessonDTOPage =
-                lessonService.findPageLesson(page, linesPerPage, orderBy, direction);
-        return ResponseEntity.ok(lessonDTOSessonDTOPage);
+            @RequestParam(value = "direction", defaultValue = "ASC") String direction
+    ) {
+        Page<LessonRequestRecordDTO> lessonPage = lessonService.findPageLesson(page, linesPerPage, orderBy, direction);
+        return ResponseEntity.ok(lessonPage);
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<LessonRequestRecordDTO> createLesson(
-            @Valid @RequestBody LessonRequestRecordDTO lessonRequestRecordDTO) {
-        LessonRequestRecordDTO createdLesson = lessonService.createLesson(lessonRequestRecordDTO);
-        URI headerLocation = ServletUriComponentsBuilder
+            @Valid @RequestBody LessonRequestRecordDTO lessonRequestDTO) {
+
+        LessonRequestRecordDTO createdLesson = lessonService.createLesson(lessonRequestDTO);
+
+        URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(createdLesson.toLesson().getIdLesson())
+                .buildAndExpand(createdLesson.idLesson())
                 .toUri();
-        return ResponseEntity.created(headerLocation).body(createdLesson);
+
+        return ResponseEntity.created(location).body(createdLesson);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
-    public ResponseEntity<LessonDTO> updateLesson(@Valid @RequestBody LessonDTO lessonDTO, @PathVariable UUID id) {
-        LessonDTO updatedLesson = lessonService.updateLesson(lessonDTO, id);
+    public ResponseEntity<LessonRequestRecordDTO> updateLesson(
+            @Valid @RequestBody LessonRequestRecordDTO lessonRequestDTO,
+            @PathVariable UUID id) {
+
+        LessonRequestRecordDTO updatedLesson = lessonService.updateLesson(lessonRequestDTO, id);
         return ResponseEntity.ok(updatedLesson);
     }
 

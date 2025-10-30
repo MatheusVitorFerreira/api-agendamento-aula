@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -15,14 +13,12 @@ import java.util.stream.Collectors;
 public class LessonDTO {
 
     private UUID idLesson;
-    private String nameLesson;
+    private String title;
+    private String description;
     private UUID teacherId;
-    private UUID disciplineId;
-    private int availableSlots;
+    private UUID classroomId;
     private StatusClass status;
-    private String location;
-    private List<UUID> students;
-    private UUID idClassSchedule;
+    private UUID scheduleId;
     private ClassShift classShift;
 
     public static LessonDTO fromLesson(Lesson lesson) {
@@ -32,38 +28,37 @@ public class LessonDTO {
 
         return new LessonDTO(
                 lesson.getIdLesson(),
-                lesson.getNameLesson(),
+                lesson.getTitle(),
+                lesson.getDescription(),
                 lesson.getTeacher() != null ? lesson.getTeacher().getTeacherId() : null,
-                lesson.getDiscipline() != null ? lesson.getDiscipline().getIdDiscipline() : null,
-                lesson.getAvailableSlots(),
+                lesson.getClassroom() != null ? lesson.getClassroom().getIdClass() : null,
                 lesson.getStatus(),
-                lesson.getLocation(),
-                lesson.getStudents() != null
-                        ? lesson.getStudents().stream()
-                        .map(Student::getStudentId)
-                        .collect(Collectors.toList())
-                        : List.of(),
-                lesson.getScheduleClass() != null ? lesson.getScheduleClass().getIdClassSchedule() : null,
-                lesson.getScheduleClass() != null
-                        ? lesson.getScheduleClass().getClassShift()
-                        : lesson.getClassShift()
+                lesson.getSchedule() != null ? lesson.getSchedule().getIdSchedule() : null,
+                lesson.getSchedule() != null ? lesson.getSchedule().getShift() : null
         );
     }
 
     public Lesson toLesson() {
         Lesson lesson = new Lesson();
         lesson.setIdLesson(this.idLesson);
-        lesson.setNameLesson(this.nameLesson);
-        lesson.setAvailableSlots(this.availableSlots);
+        lesson.setTitle(this.title);
+        lesson.setDescription(this.description);
         lesson.setStatus(this.status);
-        lesson.setLocation(this.location);
-        lesson.setClassShift(this.classShift);
-
-        if (this.idClassSchedule != null) {
-            ScheduleClass scheduleClass = new ScheduleClass();
-            scheduleClass.setIdClassSchedule(this.idClassSchedule);
-            scheduleClass.setClassShift(this.classShift);
-            lesson.setScheduleClass(scheduleClass);
+        if (this.teacherId != null) {
+            Teacher teacher = new Teacher();
+            teacher.setTeacherId(this.teacherId);
+            lesson.setTeacher(teacher);
+        }
+        if (this.classroomId != null) {
+            Classroom classroom = new Classroom();
+            classroom.setIdClass(this.classroomId);
+            lesson.setClassroom(classroom);
+        }
+        if (this.scheduleId != null) {
+            Schedule schedule = new Schedule();
+            schedule.setIdSchedule(this.scheduleId);
+            schedule.setShift(this.classShift);
+            lesson.setSchedule(schedule);
         }
 
         return lesson;

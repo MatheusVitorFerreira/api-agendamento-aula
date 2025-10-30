@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
@@ -23,23 +22,19 @@ public class Student extends Person implements Serializable {
 
     private LocalDate enrollmentDate;
 
-    @ManyToMany(mappedBy = "students", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Lesson> lessons = new ArrayList<>();
-
-    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private Set<Enrollment> enrollments = new HashSet<>();
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(studentId);
-    }
+    @ManyToMany(mappedBy = "students")
+    private Set<Classroom> classrooms = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Student student = (Student) o;
+        if (!(o instanceof Student student)) return false;
         return Objects.equals(studentId, student.studentId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(studentId);
     }
 }

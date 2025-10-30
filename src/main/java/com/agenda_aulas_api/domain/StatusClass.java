@@ -15,9 +15,7 @@ public enum StatusClass {
     private final String description;
 
     public static StatusClass toEnum(Integer cod) {
-        if (cod == null) {
-            return null;
-        }
+        if (cod == null) return null;
         for (StatusClass x : StatusClass.values()) {
             if (cod.equals(x.getCod())) {
                 return x;
@@ -25,5 +23,4 @@ public enum StatusClass {
         }
         throw new IllegalArgumentException("Invalid ID: " + cod);
     }
-
 }
