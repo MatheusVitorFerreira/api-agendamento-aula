@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponseException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -46,11 +47,19 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDTO createSchedule(ScheduleDTO dto) {
-        if (dto.getLessonId() == null)
-            throw new IllegalArgumentException("Lesson ID must be provided.");
-
+        if (dto.getDate() == null || dto.getStartTime() == null || dto.getEndTime() == null) {
+            throw new InvalidScheduleException("Date, startTime and endTime are required.");
+        }
+        if (!dto.getStartTime().isBefore(dto.getEndTime())) {
+            throw new InvalidScheduleException(
+                    "Start time must be before end time."
+            );
+        }
         Lesson lesson = lessonRepository.findById(dto.getLessonId())
-                .orElseThrow(() -> new LessonNotFoundException("Lesson not found with id: " + dto.getLessonId()));
+                .orElseThrow(() ->
+                        new LessonNotFoundException(
+                                "Lesson not found with id: " + dto.getLessonId()
+                        ));
         checkScheduleConflict(
                 lesson.getTeacher(),
                 dto.getDate(),
@@ -58,10 +67,17 @@ public class ScheduleService {
                 dto.getEndTime(),
                 null
         );
-        Schedule schedule = dto.toSchedule(lesson);
+
+        Schedule schedule = new Schedule();
+        schedule.setDate(dto.getDate());
+        schedule.setStartTime(dto.getStartTime());
+        schedule.setEndTime(dto.getEndTime());
+        schedule.setShift(dto.getShift());
+        schedule.setLesson(lesson);
+        lesson.setSchedule(schedule);
         Schedule saved = scheduleRepository.save(schedule);
-        lesson.setSchedule(saved);
         lessonRepository.save(lesson);
+
         return ScheduleDTO.fromSchedule(saved);
     }
 
@@ -103,17 +119,6 @@ public class ScheduleService {
         return ScheduleDTO.fromSchedule(updated);
     }
 
-    @Transactional
-    public void deleteSchedule(UUID scheduleId) {
-        Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new ScheduleClassRepositoryNotFoundException("Schedule not found"));
-        Lesson lesson = schedule.getLesson();
-        if (lesson != null) {
-            lesson.setSchedule(null);
-            lessonRepository.save(lesson);
-        }
-        scheduleRepository.delete(schedule);
-    }
     private void checkScheduleConflict(Teacher teacher, LocalDate date, LocalTime startTime, LocalTime endTime, UUID scheduleIdToIgnore) {
         if (teacher == null) return;
         List<Schedule> conflicts = scheduleRepository.findOverlappingSchedules(

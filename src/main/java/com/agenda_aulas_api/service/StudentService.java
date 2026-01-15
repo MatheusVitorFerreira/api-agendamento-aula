@@ -1,169 +1,119 @@
 package com.agenda_aulas_api.service;
 
-import com.agenda_aulas_api.domain.Address;
-import com.agenda_aulas_api.repository.AddressRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.agenda_aulas_api.domain.Student;
-import com.agenda_aulas_api.dto.StudentDTO;
-import com.agenda_aulas_api.exception.erros.*;
+import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
+import com.agenda_aulas_api.exception.erros.StudentNotFoundException;
 import com.agenda_aulas_api.repository.StudentRepository;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class StudentService {
 
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private AddressRepository addressRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private ScheduleStatisticsService statisticsService;
+    private final StudentRepository studentRepository;
 
     public List<Map<String, Object>> findAll() {
         try {
             return studentRepository.findAll()
                     .stream()
                     .map(student -> {
-                        Map map = objectMapper.convertValue(student, Map.class);
-                        Map<String, Object> filteredMap = new HashMap<>();
-                        filteredMap.put("studentId", map.get("studentId"));
-                        filteredMap.put("fullName", map.get("fullName"));
-                        filteredMap.put("birthDate", map.get("birthDate"));
-                        filteredMap.put("cpf", map.get("cpf"));
-                        filteredMap.put("addressId",
-                                map.get("address") != null ? ((Map<String, Object>) map.get("address"))
-                                        .get("id") : null);
-                        return filteredMap;
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("studentId", student.getStudentId());
+                        map.put("fullName", student.getFullName());
+                        map.put("birthDate", student.getBirthDate());
+                        map.put("cpf", student.getCpf());
+                        return map;
                     })
                     .collect(Collectors.toList());
+
         } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+            throw new DatabaseNegatedAccessException(
+                    "Failed to list students: " + e.getMessage()
+            );
         }
     }
 
-    public StudentDTO findById(UUID idStudent) {
-        try {
-            Student student = studentRepository.findById(idStudent)
-                    .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + idStudent));
-            return StudentDTO.fromStudent(student);
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
-        }
+    public Student findById(UUID id) {
+        return studentRepository.findById(id)
+                .orElseThrow(() ->
+                        new StudentNotFoundException("Student not found with id: " + id)
+                );
     }
 
-    public Page<Map<String, Object>> findPageStudentDTO(
+    public Page<Map<String, Object>> findPage(
             Integer page,
-            Integer linesPerPage,
+            Integer size,
             String orderBy,
             String direction) {
+
         try {
             PageRequest pageRequest = PageRequest.of(
                     page,
-                    linesPerPage,
+                    size,
                     Sort.Direction.valueOf(direction),
                     orderBy
             );
 
-            Page<Student> studentPage = studentRepository.findAll(pageRequest);
-
-            return studentPage.map(student -> {
-                Map map = objectMapper.convertValue(student, Map.class);
-                Map<String, Object> filteredMap = new HashMap<>();
-                filteredMap.put("idStudent", map.get("idStudent"));
-                filteredMap.put("fullName", map.get("fullName"));
-                filteredMap.put("birthDateTime", map.get("birthDateTime"));
-                filteredMap.put("cpf", map.get("cpf"));
-                filteredMap.put("addressId",
-                        map.get("address") != null ?
-                                ((Map<String, Object>) map.get("address")).get("id") :
-                                null
-                );
-                return filteredMap;
-            });
+            return studentRepository.findAll(pageRequest)
+                    .map(student -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("studentId", student.getStudentId());
+                        map.put("fullName", student.getFullName());
+                        map.put("cpf", student.getCpf());
+                        return map;
+                    });
 
         } catch (IllegalArgumentException e) {
-            throw new InvalidUrlException("Invalid URL or sorting parameter: " + e.getMessage());
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+            throw new DatabaseNegatedAccessException(
+                    "Invalid pagination parameters: " + e.getMessage()
+            );
         }
     }
 
+    // ATUALIZAR
     @Transactional
-    public StudentDTO createStudent(StudentDTO obj) {
+    public Student update(UUID id, Student obj) {
+
         try {
-            Student student = obj.toStudent();
-            boolean existingStudent = studentRepository.existsByFullNameAndCpf(student.getFullName(), student.getCpf());
-            if (existingStudent) {
-                throw new DuplicateEntityException(
-                        "Student already exists with full name: "
-                                + student.getFullName()
-                                + " and CPF: " + student.getCpf());
-            }
-            student = studentRepository.save(student);
-            statisticsService.incrementTotalStudents();
-            return StudentDTO.fromStudent(student);
-        } catch (DuplicateEntityException e) {
-            throw e;
+            Student existing = studentRepository.findById(id)
+                    .orElseThrow(() ->
+                            new StudentNotFoundException("Student not found with id: " + id)
+                    );
+
+            existing.setFullName(obj.getFullName());
+            existing.setBirthDate(obj.getBirthDate());
+            existing.setAge(obj.getAge());
+            existing.setEmail(obj.getEmail());
+            existing.setCpf(obj.getCpf());
+            existing.setTelephone(obj.getTelephone());
+            existing.setAddress(obj.getAddress());
+
+            return studentRepository.save(existing);
+
         } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to create student: " + e.getMessage());
+            throw new DatabaseNegatedAccessException(
+                    "Failed to update student: " + e.getMessage()
+            );
         }
     }
 
+    // DELETAR
     @Transactional
-    public StudentDTO updateStudent(StudentDTO obj, UUID idStudent) {
-        try {
-            Student existingStudent = studentRepository.findById(idStudent)
-                    .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + idStudent));
+    public void delete(UUID id) {
 
-            existingStudent.setFullName(obj.getFullName());
-            existingStudent.setBirthDate(obj.getBirthDate());
-            existingStudent.setAge(obj.getAge());
-            existingStudent.setEmail(obj.getEmail());
-            existingStudent.setCpf(obj.getCpf());
-            existingStudent.setTelephone(obj.getTelephone());
-            existingStudent.setEnrollmentDate(obj.getEnrollmentDate());
-
-            if (obj.getAddress() != null) {
-                existingStudent.setAddress(obj.getAddress().toAddress());
-            }
-
-            existingStudent = studentRepository.save(existingStudent);
-            return StudentDTO.fromStudent(existingStudent);
-
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to update student: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void deleteStudent(UUID id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new StudentNotFoundException("Student not found with id: " + id));
-        if (student.getAddress() != null) {
-            Address address = student.getAddress();
-            addressRepository.delete(address);
-        }
+                .orElseThrow(() ->
+                        new StudentNotFoundException("Student not found with id: " + id)
+                );
+
         studentRepository.delete(student);
-        statisticsService.incrementTotalStudents();
     }
 }

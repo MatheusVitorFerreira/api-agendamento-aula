@@ -4,10 +4,11 @@ import com.agenda_aulas_api.domain.Classroom;
 import com.agenda_aulas_api.domain.MuralPost;
 import com.agenda_aulas_api.domain.Student;
 import com.agenda_aulas_api.domain.Teacher;
+import com.agenda_aulas_api.dto.ClassroomDTO;
+import com.agenda_aulas_api.dto.record.ManageStudentClassroomDTO;
 import com.agenda_aulas_api.dto.record.ClassroomRequestRecordDTO;
-import com.agenda_aulas_api.exception.erros.ClassroomNotFoundException;
-import com.agenda_aulas_api.exception.erros.StudentNotFoundException;
-import com.agenda_aulas_api.exception.erros.TeacherNotFoundException;
+import com.agenda_aulas_api.dto.record.ClassroomResponseRecordDTO;
+import com.agenda_aulas_api.exception.erros.*;
 import com.agenda_aulas_api.repository.ClassroomRepository;
 import com.agenda_aulas_api.repository.StudentRepository;
 import com.agenda_aulas_api.repository.TeacherRepository;
@@ -33,10 +34,17 @@ public class ClassroomService {
     private final StudentRepository studentRepository;
 
 
-    public ClassroomRequestRecordDTO findById(UUID id) {
+    public ClassroomDTO findById(UUID id) {
         Classroom classroom = classroomRepository.findById(id)
                 .orElseThrow(() -> new ClassroomNotFoundException("Classroom não encontrada com id: " + id));
-        return ClassroomRequestRecordDTO.fromEntity(classroom);
+        return ClassroomDTO.fromLesson(classroom);
+    }
+
+    public List<ClassroomResponseRecordDTO> findAll() {
+        return classroomRepository.findAll()
+                .stream()
+                .map(ClassroomResponseRecordDTO::fromClassRoom)
+                .toList();
     }
 
     public Page<ClassroomRequestRecordDTO> findPage(
@@ -47,12 +55,12 @@ public class ClassroomService {
 
         PageRequest pageRequest = PageRequest.of(page, linesPerPage, Sort.Direction.valueOf(direction), orderBy);
         return classroomRepository.findAll(pageRequest)
-                .map(ClassroomRequestRecordDTO::fromEntity);
+                .map(ClassroomRequestRecordDTO::fromClassRoom);
     }
 
     @Transactional
     public ClassroomRequestRecordDTO createClassroom(ClassroomRequestRecordDTO dto) {
-        Classroom classroom = dto.toEntity();
+        Classroom classroom = dto.toClassRoom();
         Teacher teacher = teacherRepository.findById(dto.teacherId())
                 .orElseThrow(() -> new TeacherNotFoundException("Professor não encontrado com id: " + dto.teacherId()));
         classroom.setTeacher(teacher);
@@ -69,7 +77,7 @@ public class ClassroomService {
         }
 
         Classroom savedClassroom = classroomRepository.save(classroom);
-        return ClassroomRequestRecordDTO.fromEntity(savedClassroom);
+        return ClassroomRequestRecordDTO.fromClassRoom(savedClassroom);
     }
 
     @Transactional
@@ -96,7 +104,7 @@ public class ClassroomService {
         updateStudentEnrollments(classroom, dto.studentIds());
 
         Classroom saved = classroomRepository.save(classroom);
-        return ClassroomRequestRecordDTO.fromEntity(saved);
+        return ClassroomRequestRecordDTO.fromClassRoom(saved);
     }
 
     @Transactional
@@ -139,4 +147,43 @@ public class ClassroomService {
             studentsToAdd.forEach(classroom::addStudent);
         }
     }
+
+    @Transactional
+    public ClassroomRequestRecordDTO addStudentToClassroom(ManageStudentClassroomDTO dto) {
+        Classroom classroom = classroomRepository.findById(dto.classroomId())
+                .orElseThrow(() -> new ClassroomNotFoundException(
+                        "Classroom não encontrada com id: " + dto.classroomId()));
+
+        Student student = studentRepository.findById(dto.studentId())
+                .orElseThrow(() -> new StudentNotFoundException(
+                        "Aluno não encontrado com id: " + dto.studentId()));
+
+        if (classroom.getStudents().contains(student)) {
+            throw new MatriculaDuplicadaException("O aluno já está matriculado nesta turma.");
+        }
+
+        classroom.addStudent(student);
+        Classroom saved = classroomRepository.save(classroom);
+
+        return ClassroomRequestRecordDTO.fromClassRoom(saved);
+    }
+
+    @Transactional
+    public ClassroomRequestRecordDTO removeStudentFromClassroom(UUID classroomId, UUID studentId) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new ClassroomNotFoundException("Classroom não encontrada com id: " + classroomId));
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new StudentNotFoundException("Aluno não encontrado com id: " + studentId));
+
+        if (!classroom.getStudents().contains(student)) {
+            throw new StudentNotFoundException("O aluno não está matriculado nesta turma.");
+        }
+
+        classroom.removeStudent(student);
+
+        Classroom updated = classroomRepository.save(classroom);
+        return ClassroomRequestRecordDTO.fromClassRoom(updated);
+    }
+
 }

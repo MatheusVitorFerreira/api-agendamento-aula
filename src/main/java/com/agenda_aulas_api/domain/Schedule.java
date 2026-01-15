@@ -3,6 +3,8 @@ package com.agenda_aulas_api.domain;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -13,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Table(name = "schedule")
-public class Schedule {
+public class Schedule implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

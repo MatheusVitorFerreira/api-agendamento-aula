@@ -1,141 +1,87 @@
 package com.agenda_aulas_api.service;
 
-import com.agenda_aulas_api.domain.Address;
 import com.agenda_aulas_api.domain.Teacher;
-import com.agenda_aulas_api.dto.TeacherDTO;
-import com.agenda_aulas_api.exception.erros.*;
-import com.agenda_aulas_api.repository.AddressRepository;
+import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
+import com.agenda_aulas_api.exception.erros.TeacherNotFoundException;
 import com.agenda_aulas_api.repository.TeacherRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class TeacherService {
 
-    @Autowired
-    private TeacherRepository teacherRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private AddressRepository addressRepository;
+    private final TeacherRepository teacherRepository;
 
     public List<Map<String, Object>> findAll() {
         try {
             return teacherRepository.findAll()
                     .stream()
                     .map(teacher -> {
-                        Map<String, Object> filteredMap = new HashMap<>();
-                        filteredMap.put("cpf", teacher.getCpf());
-                        filteredMap.put("fullName", teacher.getFullName());
-                        filteredMap.put("birthDateTime", teacher.getBirthDate());
-                        filteredMap.put("idTeacher", teacher.getTeacherId());
-                        filteredMap.put("addressId", teacher.getAddress() != null ? teacher.getAddress().getId() : null);
-                        return filteredMap;
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("teacherId", teacher.getTeacherId());
+                        map.put("fullName", teacher.getFullName());
+                        map.put("cpf", teacher.getCpf());
+                        map.put("birthDate", teacher.getBirthDate());
+                        return map;
                     })
                     .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
-        }
-    }
 
-    public TeacherDTO findById(UUID idTeacher) {
-        try {
-            Teacher teacher = teacherRepository.findById(idTeacher).orElseThrow
-                    (() -> new TeacherNotFoundException("Teacher not found with id: " + idTeacher));
-            return TeacherDTO.fromTeacher(teacher);
         } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
-        }
-    }
-
-    public Page<TeacherDTO> findPageTeacherDTO(
-            Integer page,
-            Integer linePerPage,
-            String orderBy,
-            String direction) {
-        try {
-            PageRequest pageRequest = PageRequest.of(
-                    page,
-                    linePerPage,
-                    Sort.Direction.valueOf(direction),
-                    orderBy
+            throw new DatabaseNegatedAccessException(
+                    "Failed to list teachers: " + e.getMessage()
             );
-
-            Page<Teacher> teacherPage = teacherRepository.findAll(pageRequest);
-            return teacherPage.map(TeacherDTO::fromTeacher);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidUrlException("Invalid URL or sorting parameter: " + e.getMessage());
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
         }
     }
 
-    @Transactional
-    public TeacherDTO createTeacher(TeacherDTO dto) {
-        try {
-            Teacher teacher = dto.toTeacher();
-
-            if (dto.getAddress() != null) {
-                Address address = dto.getAddress().toAddress();
-                address = addressRepository.save(address);
-                teacher.setAddress(address);
-            }
-            teacher = teacherRepository.save(teacher);
-            return TeacherDTO.fromTeacher(teacher);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public TeacherDTO updateTeacher(TeacherDTO obj, UUID idTeacher) {
-        try {
-            Teacher existingTeacher = teacherRepository.findById(idTeacher).orElseThrow(() ->
-                    new TeacherNotFoundException("Teacher not found with id: " + idTeacher));
-            existingTeacher.setFullName(obj.getFullName());
-            existingTeacher.setBirthDate(obj.getBirthDateTime());
-            existingTeacher.setAge(obj.getAge());
-            existingTeacher.setEmail(obj.getEmail());
-            existingTeacher.setCpf(obj.getCpf());
-            existingTeacher.setTelephone(obj.getTelephone());
-
-            if (obj.getAddress() != null) {
-                existingTeacher.setAddress(obj.getAddress().toAddress());
-            }
-
-            existingTeacher = teacherRepository.save(existingTeacher);
-            return TeacherDTO.fromTeacher(existingTeacher);
-
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to update teacher: " + e.getMessage());
-        }
-    }
-
-    @Transactional
-    public void deleteTeacher(UUID id) {
-        Teacher student = teacherRepository.findById(id)
+    // BUSCAR POR ID
+    public Teacher findById(UUID id) {
+        return teacherRepository.findById(id)
                 .orElseThrow(() ->
-                        new TeacherNotFoundException("Teacher not found with id: " + id));
-        if (student.getAddress() != null) {
-            Address address = student.getAddress();
-            addressRepository.delete(address);
+                        new TeacherNotFoundException("Teacher not found with id: " + id)
+                );
+    }
+
+    // ATUALIZAR
+    @Transactional
+    public Teacher update(UUID id, Teacher obj) {
+
+        try {
+            Teacher existing = teacherRepository.findById(id)
+                    .orElseThrow(() ->
+                            new TeacherNotFoundException("Teacher not found with id: " + id)
+                    );
+
+            existing.setFullName(obj.getFullName());
+            existing.setBirthDate(obj.getBirthDate());
+            existing.setAge(obj.getAge());
+            existing.setEmail(obj.getEmail());
+            existing.setCpf(obj.getCpf());
+            existing.setTelephone(obj.getTelephone());
+            existing.setAddress(obj.getAddress());
+
+            return teacherRepository.save(existing);
+
+        } catch (Exception e) {
+            throw new DatabaseNegatedAccessException(
+                    "Failed to update teacher: " + e.getMessage()
+            );
         }
-        teacherRepository.delete(student);
+    }
+
+    // DELETAR
+    @Transactional
+    public void delete(UUID id) {
+
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() ->
+                        new TeacherNotFoundException("Teacher not found with id: " + id)
+                );
+
+        teacherRepository.delete(teacher);
     }
 }

@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/lesson")
+@RequestMapping("/sistema-agendamento-aula/api/v1/lesson")
 @RequiredArgsConstructor
 public class LessonController {
 
@@ -46,7 +46,7 @@ public class LessonController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
+    //@PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<LessonRequestRecordDTO> createLesson(
             @Valid @RequestBody LessonRequestRecordDTO lessonRequestDTO) {
 
@@ -62,7 +62,6 @@ public class LessonController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<LessonRequestRecordDTO> updateLesson(
             @Valid @RequestBody LessonRequestRecordDTO lessonRequestDTO,
             @PathVariable UUID id) {
@@ -72,7 +71,6 @@ public class LessonController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<Void> deleteLesson(@PathVariable UUID id) {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();

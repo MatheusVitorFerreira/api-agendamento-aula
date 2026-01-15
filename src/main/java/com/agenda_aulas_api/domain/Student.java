@@ -1,40 +1,40 @@
 package com.agenda_aulas_api.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 
 @Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Student extends Person implements Serializable {
+@Table(name = "tb_students")
+@Getter
+@Setter
+public class Student extends Person {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "student_id", updatable = false, unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID studentId;
 
+    @Column(nullable = false)
     private LocalDate enrollmentDate;
 
-    @JsonIgnore
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    @OneToOne(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Address address;
+
     @ManyToMany(mappedBy = "students")
     private Set<Classroom> classrooms = new HashSet<>();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Student student)) return false;
-        return Objects.equals(studentId, student.studentId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(studentId);
+    @PrePersist
+    void onEnroll() {
+        this.enrollmentDate = LocalDate.now();
     }
 }

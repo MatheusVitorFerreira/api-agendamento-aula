@@ -1,44 +1,32 @@
 package com.agenda_aulas_api.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import lombok.*;
-
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "tb_addresses")
 @Getter
 @Setter
-public class Address implements Serializable {
+public class Address {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, unique = true, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID addressId;
 
-    @NonNull
-    @Column(nullable = false)
     private String street;
-
-    @Min(1)
-    private int number;
-
-    @NonNull
-    @Column(nullable = false)
+    private Integer number;
     private String city;
-
-    @NonNull
-    @Column(nullable = false)
     private String state;
-
-    @NonNull
-    @Column(nullable = false)
     private String zipCode;
-
-    @NonNull
-    @Column(nullable = false)
     private String country;
+
+    @OneToOne
+    @JoinColumn(name = "student_id", unique = true)
+    private Student student;
+
+    @OneToOne
+    @JoinColumn(name = "teacher_id", unique = true)
+    private Teacher teacher;
 }

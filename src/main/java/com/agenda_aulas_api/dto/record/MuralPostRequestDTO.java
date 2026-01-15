@@ -29,7 +29,7 @@ public record MuralPostRequestDTO(
 
         if (authorId != null) {
             User author = new User();
-            author.setUserID(authorId);
+            author.setUserId(authorId);
             post.setAuthor(author);
         }
         return post;
@@ -43,7 +43,7 @@ public record MuralPostRequestDTO(
                 .createdAt(post.getCreatedAt())
                 .parentId(post.getParentId())
                 .parentType(post.getParentType())
-                .authorId(post.getAuthor() != null ? post.getAuthor().getUserID() : null)
+                .authorId(post.getAuthor() != null ? post.getAuthor().getUserId() : null)
                 .build();
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/v1/statistics")
+@RequestMapping("/sistema-agendamento-aula/api/v1/statistics")
 @RequiredArgsConstructor
 public class ScheduleStatisticsController {
 

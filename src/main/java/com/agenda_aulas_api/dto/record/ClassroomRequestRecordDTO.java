@@ -17,15 +17,14 @@ import java.util.stream.Collectors;
 @Builder
 public record ClassroomRequestRecordDTO(
         UUID idClass,
-        @NonNull String name,
+        String name,
         String description,
-        @NonNull UUID teacherId,
+        UUID teacherId,
         Set<UUID> studentIds,
         List<MuralPostRequestDTO> muralPosts,
         LocalDateTime createdAt
 ) {
-
-    public Classroom toEntity() {
+    public Classroom toClassRoom() {
         Classroom classroom = new Classroom();
         classroom.setIdClass(this.idClass);
         classroom.setName(this.name);
@@ -59,7 +58,7 @@ public record ClassroomRequestRecordDTO(
 
         return classroom;
     }
-    public static ClassroomRequestRecordDTO fromEntity(Classroom classroom) {
+    public static ClassroomRequestRecordDTO fromClassRoom(Classroom classroom) {
         if (classroom == null) return null;
 
         return ClassroomRequestRecordDTO.builder()

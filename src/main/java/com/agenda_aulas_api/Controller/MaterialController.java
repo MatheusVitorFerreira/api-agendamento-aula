@@ -22,7 +22,6 @@ public class MaterialController {
     private final MaterialService materialService;
 
     @PostMapping("/upload/{lessonId}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<Material> uploadFile(
             @PathVariable UUID lessonId,
             @RequestParam("file") MultipartFile file) throws IOException {
@@ -46,7 +45,6 @@ public class MaterialController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('SCOPE_ADMIN') or hasAuthority('SCOPE_MODERATOR')")
     public ResponseEntity<Void> deleteMaterial(@PathVariable UUID id) {
         materialService.deleteMaterial(id);
         return ResponseEntity.noContent().build();

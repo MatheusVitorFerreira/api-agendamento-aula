@@ -2,6 +2,8 @@ package com.agenda_aulas_api.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "tb_material")
-public class Material {
+public class Material implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

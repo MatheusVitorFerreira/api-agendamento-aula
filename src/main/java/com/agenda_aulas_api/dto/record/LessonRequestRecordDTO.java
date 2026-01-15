@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Builder
 public record LessonRequestRecordDTO(
@@ -22,7 +23,7 @@ public record LessonRequestRecordDTO(
         LocalTime endTime,
         ClassShift shift,
         List<MaterialRequestDTO> materials,
-        List<MuralPostRequestDTO> posts
+        List<MuralPostRequestDTO> muralPosts
 ) {
 
     public Lesson toLesson() {
@@ -41,6 +42,7 @@ public record LessonRequestRecordDTO(
             classroom.setIdClass(this.classroomId);
             lesson.setClassroom(classroom);
         }
+
         if (this.date != null && this.startTime != null && this.endTime != null && this.shift != null) {
             Schedule schedule = Schedule.builder()
                     .date(this.date)
@@ -50,6 +52,23 @@ public record LessonRequestRecordDTO(
                     .lesson(lesson)
                     .build();
             lesson.setSchedule(schedule);
+        }
+
+        // Transient fields (opcionais, para resposta)
+        if (this.materials != null) {
+            lesson.setMaterials(
+                    this.materials.stream()
+                            .map(MaterialRequestDTO::toEntity)
+                            .collect(Collectors.toList())
+            );
+        }
+
+        if (this.muralPosts != null) {
+            lesson.setMuralPosts(
+                    this.muralPosts.stream()
+                            .map(MuralPostRequestDTO::toEntity)
+                            .collect(Collectors.toList())
+            );
         }
 
         return lesson;
@@ -71,13 +90,16 @@ public record LessonRequestRecordDTO(
                 .startTime(schedule != null ? schedule.getStartTime() : null)
                 .endTime(schedule != null ? schedule.getEndTime() : null)
                 .shift(schedule != null ? schedule.getShift() : null)
-
-                .materials(lesson.getMaterials().stream()
+                .materials(lesson.getMaterials() != null
+                        ? lesson.getMaterials().stream()
                         .map(MaterialRequestDTO::fromEntity)
-                        .toList())
-                .posts(lesson.getPosts().stream()
+                        .toList()
+                        : List.of())
+                .muralPosts(lesson.getMuralPosts() != null
+                        ? lesson.getMuralPosts().stream()
                         .map(MuralPostRequestDTO::fromEntity)
-                        .toList())
+                        .toList()
+                        : List.of())
                 .build();
     }
 }

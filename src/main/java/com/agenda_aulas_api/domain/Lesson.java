@@ -1,7 +1,6 @@
 package com.agenda_aulas_api.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.io.Serializable;
@@ -33,8 +32,6 @@ public class Lesson implements Serializable {
     @JsonBackReference
     private Classroom classroom;
 
-
-
     @Enumerated(EnumType.STRING)
     private StatusClass status = StatusClass.CONFIRMED;
 
@@ -45,6 +42,8 @@ public class Lesson implements Serializable {
     private List<Material> materials = new ArrayList<>();
 
     @Transient
-    private List<MuralPost> posts = new ArrayList<>();
+    private List<MuralPost> muralPosts = new ArrayList<>();
 
+    @Transient
+    private List<MuralComment> muralComments = new ArrayList<>();
 }

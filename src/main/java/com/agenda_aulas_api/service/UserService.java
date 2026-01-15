@@ -2,92 +2,79 @@ package com.agenda_aulas_api.service;
 
 import com.agenda_aulas_api.domain.*;
 import com.agenda_aulas_api.dto.CreateUserDTO;
-import com.agenda_aulas_api.dto.UserDTO;
-import com.agenda_aulas_api.exception.erros.DatabaseNegatedAccessException;
-import com.agenda_aulas_api.exception.erros.UserCreationException;
-import com.agenda_aulas_api.repository.RoleRepository;
-import com.agenda_aulas_api.repository.StudentRepository;
-import com.agenda_aulas_api.repository.TeacherRepository;
+import com.agenda_aulas_api.dto.UserResponseDTO;
 import com.agenda_aulas_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-;
 
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private StudentRepository studentRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private TeacherRepository teacherRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public void createUser(String id, CreateUserDTO dto) {
-        UUID userId;
-        try {
-            userId = UUID.fromString(id);
-        } catch (IllegalArgumentException e) {
-            throw new UserCreationException("Invalid UUID format.");
-        }
 
+    public List<UserResponseDTO> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserResponseDTO::fromUser)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public User create(CreateUserDTO dto) {
         User user = new User();
-        user.setUsername(dto.username());
-        user.setPassword(passwordEncoder.encode(dto.password()));
-        user.setUserType(dto.userType());
+        user.setUsername(dto.getUsername());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setUserType(dto.getUserType());
 
-        List<Role> roles = new ArrayList<>(); // Use List ao invés de Set
+        if (dto.getUserType() == UserType.ALUNO) {
 
-        if (dto.userType() == UserType.PROFESSOR) {
-            Optional<Teacher> optionalTeacher = teacherRepository.findById(userId);
-            if (optionalTeacher.isEmpty()) {
-                throw new UserCreationException("Professor not found with ID: " + userId);
+            if (dto.getStudentInfo() == null) {
+                throw new IllegalArgumentException("studentInfo é obrigatório para ALUNO");
             }
-            user.setProfessorId(userId);
 
-            Role moderatorRole = roleRepository.findById(Role.Values.MODERATOR.getRoleId())
-                    .orElseThrow(() -> new UserCreationException("Role MODERATOR not found"));
-            roles.add(moderatorRole);
+            Student student = dto.getStudentInfo().toStudent();
+            student.setUser(user);
+            user.setStudent(student);
 
-        } else if (dto.userType() == UserType.ALUNO) {
-            Optional<Student> optionalStudent = studentRepository.findById(userId);
-            if (optionalStudent.isEmpty()) {
-                throw new UserCreationException("Student not found with ID: " + userId);
+            if (dto.getAddress() != null) {
+                Address address = dto.getAddress().toAddress();
+                address.setStudent(student);
+                student.setAddress(address);
             }
-            user.setAlunoId(userId);
-
-            Role basicRole = roleRepository.findById(Role.Values.BASIC.getRoleId())
-                    .orElseThrow(() -> new UserCreationException("Role BASIC not found"));
-            roles.add(basicRole);
-        } else {
-            throw new UserCreationException("Invalid user type");
         }
 
-        user.setRoles(roles);
+        if (dto.getUserType() == UserType.PROFESSOR) {
 
-        userRepository.save(user);
-    }
+            if (dto.getTeacherInfo() == null) {
+                throw new IllegalArgumentException("teacherInfo é obrigatório para PROFESSOR");
+            }
 
-    public List<UserDTO> findAll() {
-        try {
-            return userRepository.findAll().stream()
-                    .map(UserDTO::fromUser)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new DatabaseNegatedAccessException("Failed to access the database: " + e.getMessage());
+            Teacher teacher = dto.getTeacherInfo().toTeacher();
+            teacher.setUser(user);
+            user.setTeacher(teacher);
+
+            if (dto.getAddress() != null) {
+                Address address = dto.getAddress().toAddress();
+                address.setTeacher(teacher);
+                teacher.setAddress(address);
+            }
         }
+
+        if (dto.getUserType() == UserType.ADMIN) {
+            if (dto.getStudentInfo() != null || dto.getTeacherInfo() != null) {
+                throw new IllegalArgumentException("ADMIN não pode ter studentInfo ou teacherInfo");
+            }
+        }
+        return userRepository.save(user);
     }
+
 }

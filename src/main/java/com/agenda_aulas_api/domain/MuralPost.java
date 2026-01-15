@@ -1,22 +1,22 @@
 package com.agenda_aulas_api.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "mural_post")
-public class MuralPost implements Serializable {
+@Table(name = "mural_posts")
+public class MuralPost {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private String title;
@@ -24,23 +24,15 @@ public class MuralPost implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
     private User author;
-    @Column(nullable = false)
-    private UUID parentId;
-
-    @Column(nullable = false)
-    private String parentType;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MuralComment> comments = new ArrayList<>();
 
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-    }
+    private UUID parentId;
+    private String parentType;
 }

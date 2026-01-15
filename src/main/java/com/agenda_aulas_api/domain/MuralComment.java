@@ -1,13 +1,7 @@
 package com.agenda_aulas_api.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,26 +10,23 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "mural_Comment")
-public class MuralComment implements Serializable {
+@Table(name = "mural_comments")
+public class MuralComment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
-        private UUID id;
+    @Column(columnDefinition = "TEXT")
+    private String text;
 
-        @Column(columnDefinition = "TEXT", nullable = false)
-        private String text;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-        private LocalDateTime createdAt = LocalDateTime.now();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
 
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "post_id", nullable = false)
-        @JsonIgnoreProperties({"comments", "lesson", "author"})
-        private MuralPost post;
-
-        @ManyToOne(fetch = FetchType.LAZY)
-        @JoinColumn(name = "author_id", nullable = false)
-        @JsonIgnoreProperties({"password", "roles"})
-        private User author;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private MuralPost post;
+}

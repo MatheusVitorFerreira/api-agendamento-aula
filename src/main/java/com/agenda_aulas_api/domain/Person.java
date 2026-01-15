@@ -2,17 +2,16 @@ package com.agenda_aulas_api.domain;
 
 import com.agenda_aulas_api.exception.erros.NegativeAgeException;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @MappedSuperclass
-@Data
-@NoArgsConstructor
-public abstract class Person implements Serializable {
+@Getter
+@Setter
+public abstract class Person {
 
     @Column(nullable = false)
     private String fullName;
@@ -20,11 +19,11 @@ public abstract class Person implements Serializable {
     @Column(nullable = false)
     private int age;
 
-    @Column(name = "birth_date")
+    @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "address_id")
+    @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 
     @Column(nullable = false, unique = true)
@@ -34,7 +33,6 @@ public abstract class Person implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column
     private String telephone;
 
     public void setAge(int age) {

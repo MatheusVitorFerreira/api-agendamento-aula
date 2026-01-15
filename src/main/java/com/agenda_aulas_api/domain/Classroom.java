@@ -17,7 +17,7 @@ public class Classroom implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id_class", updatable = false, nullable = false)
+    @Column(name = "classroom_id ", updatable = false, nullable = false)
     @EqualsAndHashCode.Include
     private UUID idClass;
 

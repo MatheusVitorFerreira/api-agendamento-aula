@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/schedules")
+@RequestMapping("/sistema-agendamento-aula/api/v1/schedules")
 @RequiredArgsConstructor
 public class ScheduleController {
     private final ScheduleService scheduleService;
@@ -43,21 +43,16 @@ public class ScheduleController {
         return ResponseEntity.ok().body(pageDto);
     }
 
-    @PostMapping
-    public ResponseEntity<ScheduleDTO> createSchedule(@RequestBody ScheduleDTO dto) {
-        ScheduleDTO newDto = scheduleService.createSchedule(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newDto);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleDTO> updateSchedule(@PathVariable UUID id, @RequestBody ScheduleDTO dto) {
         ScheduleDTO updatedDto = scheduleService.updateSchedule(id, dto);
         return ResponseEntity.ok().body(updatedDto);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSchedule(@PathVariable UUID id) {
-        scheduleService.deleteSchedule(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping
+    public ResponseEntity<ScheduleDTO> create(@RequestBody ScheduleDTO dto) {
+        ScheduleDTO created = scheduleService.createSchedule(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
+
 }
